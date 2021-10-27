@@ -143,15 +143,24 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
 
             rConn.voidEval("model<-lm(formula = demenagements$Temps ~ demenagements$Volume + demenagements$Nombre.de.grandes.pieces)");
 
-            rExp = rConn.eval("summary(model)");
+            rConn.voidEval("tmp <- summary(model)");
+            rExp = rConn.eval("tmp$coefficients");
             System.out.println("final summary :");
-            //System.out.println("\tTemps\t\tVolume\t\t\tNombre de grandes pieces");
-            RExpPrintSummary(rExp, 2);
-// rExp = Vector -> How to get value as a string?
-            System.out.println(rExp);
+            System.out.println("\tEstimate\t\tStd. Error\t\tt value\t\tPr(>|t|)");
+            RExpPrintSummary(rExp, 4);
+
+            rExp = rConn.eval("tmp$adj.r.squared");
+            System.out.println("\tAdjusted R Squared : " + rExp.asString());
+
+// p-value to do
+            rExp = rConn.eval("tmp$");
+            System.out.println("\tp-value : " + "< " + rExp.asString());
         } 
         catch (RserveException ex) {
             Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (REXPMismatchException e) {
+            e.printStackTrace();
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -200,7 +209,6 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
             }
         }
         catch (REXPMismatchException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
