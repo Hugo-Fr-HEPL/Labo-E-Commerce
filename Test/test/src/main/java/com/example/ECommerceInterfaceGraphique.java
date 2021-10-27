@@ -10,7 +10,7 @@ import org.rosuda.REngine.Rserve.RserveException;
 
 
 public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
-    RConnection c = null;
+    RConnection rConn = null;
     REXP x = null;
 
     public static void main(String args[]) {
@@ -112,7 +112,7 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try
         {
-            c = new RConnection("localhost");
+            rConn = new RConnection("localhost");
             System.out.println("connexion réussie");
             jButton2.setEnabled(true);
             jButton3.setEnabled(true);
@@ -126,25 +126,37 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
     // Déménagements
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
-            System.out.println("TEST " + GetNomFichier("demenagements.csv"));
-            c.voidEval("demenagement <-read.table (\"" + GetNomFichier("demenagements.csv") + "\", sep=\";\", header = TRUE)");
-            System.out.println("data demenagement récupérées");
+            rConn.voidEval("demenagements <-read.table (\"" + GetNomFichier("demenagements.csv") + "\", sep=\";\", header = TRUE)");
+            System.out.println("data demenagements récupérées");
             
-            c.voidEval("jpeg(file=\"" + GetNomFichier("demenagements.jpeg") + "\",width=800, height=700)");
-            c.voidEval("boxplot(demenagement)");
-            c.voidEval("dev.off()");
-            c.voidEval("dev.new()");
+            rConn.voidEval("jpeg(file=\"" + GetNomFichier("demenagements.jpeg") + "\",width=800, height=700)");
+            rConn.voidEval("boxplot(demenagements)");
+            rConn.voidEval("dev.off()");
+            rConn.voidEval("dev.new()");
             
+            // Display Error (blank window)
         } 
-        catch (RserveException ex) 
-        {
+        catch (RserveException ex) {
             Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     // Civilisation
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+        try {
+            rConn.voidEval("civilisation <-read.table (\"" + GetNomFichier("civilisation.csv") + "\", sep=\";\", header = TRUE)");
+            System.out.println("data civilisation récupérées");
+            
+            rConn.voidEval("jpeg(file=\"" + GetNomFichier("civilisation.jpeg") + "\",width=800, height=700)");
+            rConn.voidEval("boxplot(civilisation)");
+            rConn.voidEval("dev.off()");
+            rConn.voidEval("dev.new()");
+            
+            // Display Error (blank window)
+        } 
+        catch (RserveException ex) {
+            Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     public static String GetNomFichier(String nomf) {
