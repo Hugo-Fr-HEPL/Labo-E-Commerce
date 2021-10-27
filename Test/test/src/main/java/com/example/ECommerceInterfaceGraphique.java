@@ -1,28 +1,55 @@
-package java.main;
+package com.example;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-/*
+
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
+//import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-*/
-import REngine.REXP;
-import REngine.REXPMismatchException;
-import REngine.Rserve.RConnection;
-import REngine.Rserve.RserveException;
 
 
 
 public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
     RConnection c = null;
     REXP x = null;
+
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new ECommerceInterfaceGraphique().setVisible(true);
+            }
+        });
+    }
     
     public ECommerceInterfaceGraphique() {
         initComponents();
     }
 
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -96,12 +123,14 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    // Déménagements
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
-            c.voidEval("demenagement <-read.table (\"C:/Users/dries/Documents/csv_E-commerce/demenagements.csv\", sep=\";\", header = TRUE)");
-            System.out.println("data demenagement récupérer");
+            System.out.println("TEST " + GetNomFichier("demenagements.csv"));
+            c.voidEval("demenagement <-read.table (\"" + GetNomFichier("demenagements.csv") + "\", sep=\";\", header = TRUE)");
+            System.out.println("data demenagement récupérées");
             
-            c.voidEval("jpeg(file=\"C:/Users/dries/Documents/graph.jpg\",width=800, height=700)");
+            c.voidEval("jpeg(file=\"" + GetNomFichier("demenagements.jpeg") + "\",width=800, height=700)");
             c.voidEval("boxplot(demenagement)");
             c.voidEval("dev.off()");
             c.voidEval("dev.new()");
@@ -113,40 +142,13 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    // Civilisation
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new ECommerceInterfaceGraphique().setVisible(true);
-            }
-        });
+    public static String GetNomFichier(String nomf) {
+        return System.getProperty("user.dir") + System.getProperty("file.separator") + "Files" + System.getProperty("file.separator") + nomf;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
