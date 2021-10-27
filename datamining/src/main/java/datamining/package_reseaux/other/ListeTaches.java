@@ -1,6 +1,8 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.other;
 
 import java.util.*;
+
+import datamining.package_reseaux.Interface.SourceTaches;
 
 public class ListeTaches implements SourceTaches
 {

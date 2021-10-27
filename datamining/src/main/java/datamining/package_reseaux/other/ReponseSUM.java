@@ -1,6 +1,8 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.other;
 
 import java.io.*;
+
+import datamining.package_reseaux.Interface.Reponse;
 
 public class ReponseSUM implements Reponse, Serializable
 {

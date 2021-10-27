@@ -1,7 +1,11 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.other;
 
 import java.io.*;
 import java.net.*;
+
+import datamining.package_reseaux.Interface.ConsoleServeur;
+import datamining.package_reseaux.Interface.Requete;
+import datamining.package_reseaux.Interface.SourceTaches;
 
 public class ThreadServeur extends Thread
 {

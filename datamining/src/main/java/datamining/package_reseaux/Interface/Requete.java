@@ -1,4 +1,4 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.Interface;
 
 import java.net.*;
 

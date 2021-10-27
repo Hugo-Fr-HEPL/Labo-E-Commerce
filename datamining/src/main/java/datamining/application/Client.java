@@ -4,8 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.Properties;
 
-import datamining.package_reseaux.ReponseSUM;
-import datamining.package_reseaux.RequeteSUM;
+import datamining.package_reseaux.other.ReponseSUM;
+import datamining.package_reseaux.other.RequeteSUM;
 
 public class Client {
     public static void main(String[] args)

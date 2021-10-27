@@ -1,4 +1,6 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.other;
+
+import datamining.package_reseaux.Interface.SourceTaches;
 
 public class ThreadClient extends Thread
 {
@@ -19,7 +21,7 @@ public class ThreadClient extends Thread
         {
             try
             {
-                System.out.println("Tread client avant get");
+                System.out.println("Thread client avant get");
                 tacheEnCours = tachesAExecuter.getTache();
             }
             catch (InterruptedException e)

@@ -1,4 +1,6 @@
-package datamining.package_reseaux;
+package datamining.package_reseaux.other;
+
+import datamining.package_reseaux.Interface.*;
 
 import java.io.*;
 import java.net.Socket;
