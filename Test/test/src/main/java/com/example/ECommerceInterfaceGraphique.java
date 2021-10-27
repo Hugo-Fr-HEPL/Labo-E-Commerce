@@ -1,9 +1,10 @@
 package com.example;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.rosuda.REngine.REXP;
-//import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
@@ -130,11 +131,24 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
             System.out.println("data demenagements récupérées");
             
             rConn.voidEval("jpeg(file=\"" + GetNomFichier("demenagements.jpeg") + "\",width=800, height=700)");
-            rConn.voidEval("boxplot(demenagements)");
             rConn.voidEval("dev.off()");
             rConn.voidEval("dev.new()");
-            
-            // Display Error (blank window)
+
+            rConn.voidEval("boxplot(demenagements)");
+
+            REXP rExp = rConn.eval("summary(demenagements)");
+            System.out.println("summary :");
+            System.out.println("\tTemps\t\tVolume\t\t\tNombre de grandes pieces");
+            RExpPrintSummary(rExp, 3);
+
+            rConn.voidEval("model<-lm(formula = demenagements$Temps ~ demenagements$Volume + demenagements$Nombre.de.grandes.pieces)");
+
+            rExp = rConn.eval("summary(model)");
+            System.out.println("final summary :");
+            //System.out.println("\tTemps\t\tVolume\t\t\tNombre de grandes pieces");
+            RExpPrintSummary(rExp, 2);
+// rExp = Vector -> How to get value as a string?
+            System.out.println(rExp);
         } 
         catch (RserveException ex) {
             Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,20 +162,54 @@ public class ECommerceInterfaceGraphique extends javax.swing.JFrame {
             System.out.println("data civilisation récupérées");
             
             rConn.voidEval("jpeg(file=\"" + GetNomFichier("civilisation.jpeg") + "\",width=800, height=700)");
-            rConn.voidEval("boxplot(civilisation)");
             rConn.voidEval("dev.off()");
             rConn.voidEval("dev.new()");
-            
-            // Display Error (blank window)
+
+            rConn.voidEval("plot(civilisation$nbrRecipient~civilisation$civilisation)");
+
+            REXP rExp = rConn.eval("summary(civilisation)");
+            System.out.println("summary :");
+            System.out.println("\tnbrRecipient\t\tcivilisation");
+            RExpPrintSummary(rExp, 2);
+
+            rConn.voidEval("model<-lm(civilisation$nbrRecipient~civilisation$civilisation)");
+
+            rExp = rConn.eval("anova(model)");
+            System.out.println(rExp);
+            System.out.println("anova - Analysis of Variance Table:");
+            //RExpPrintSummary(rExp, 2);
+
+            rExp = rConn.eval("pairwise.t.test(civilisation$nbrRecipient,civilisation$civilisation,p.adjust.method = \"none\",pool.sd =TRUE)");
+            System.out.println(rExp);
         } 
         catch (RserveException ex) {
             Logger.getLogger(ECommerceInterfaceGraphique.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
+
+
+    private void RExpPrintSummary(REXP r, int row) {
+        try {
+            int size = r.length() / row;
+            for(int i = 0; i < size; i++) {
+                for(int j = 0; j < row; j++)
+                    if(r.asStrings()[i + (j*size)] != null)
+                        System.out.print("\t" + r.asStrings()[i + (j*size)]);
+                System.out.println("");
+            }
+        }
+        catch (REXPMismatchException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     public static String GetNomFichier(String nomf) {
         return System.getProperty("user.dir") + System.getProperty("file.separator") + "Files" + System.getProperty("file.separator") + nomf;
     }
+
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
