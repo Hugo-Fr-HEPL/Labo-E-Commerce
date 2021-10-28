@@ -4,20 +4,21 @@ import datamining.package_reseaux.Interface.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.*;
+//import java.util.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
+//import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-public class RequeteSUM implements Requete, Serializable
-{
-    public static int REQUEST_E_MAIL = 1;
-    public static int CONNEXION_RSERVE = 2;
+
+
+public class RequeteSUM implements Requete, Serializable {
+    public static int CONNEXION_RSERVE = 1;
+/*
     public static Hashtable<String, String> tableMails = new Hashtable<String, String>();
 
     static
@@ -36,44 +37,35 @@ public class RequeteSUM implements Requete, Serializable
         tablePwdNoms.put("GrosseVoiture", "Madani");
         tablePwdNoms.put("GrosCerveau", "Wagner");
     }
+*/
 
-    private int type;
-    private String chargeUtile;
-    private Socket socketClient;
-
-    public RequeteSUM(int t, String chu)
-    {
-        type = t; setChargeUtile(chu);
-    }
-
-    public RequeteSUM(int t, String chu, Socket s)
-    {
-        type = t; setChargeUtile(chu); socketClient = s;
-    }
-
-    public Runnable createRunnable (final Socket s, final ConsoleServeur cs)
-    {
-        if (type==REQUEST_E_MAIL)
-            return new Runnable()
-            {
-                public void run()
-                {
-                    traiteRequeteEMail(s, cs);
+    public Runnable createRunnable (final Socket s, final ConsoleServeur cs) {
+        if (type == CONNEXION_RSERVE)
+            return new Runnable() {
+                public void run() {
+                    traiteConnexionRServe(s, cs);
                 }
             };
-        else if (type==CONNEXION_RSERVE)
-        return new Runnable()
-        {
-            public void run()
-            {
-                traiteConnexionRServe(s, cs);
-            }
-        };
-        else return null;
+        else
+            return null;
     }
 
-    private void traiteRequeteEMail(Socket sock, ConsoleServeur cs)
-    {
+    RConnection rConn = null;
+    REXP x = null;
+    private void traiteConnexionRServe(Socket sock, ConsoleServeur cs) {
+        try {
+            rConn = new RConnection("localhost");
+            System.out.println("connexion réussie");
+        }
+        catch (RserveException ex) {
+            Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+
+
+/*
+    private void traiteRequeteEMail(Socket sock, ConsoleServeur cs) {
     // Affichage des informations
             String adresseDistante = sock.getRemoteSocketAddress().toString();
             System.out.println("Début de traiteRequete : adresse distante = " + adresseDistante);
@@ -81,47 +73,37 @@ public class RequeteSUM implements Requete, Serializable
             String eMail = (String)tableMails.get(getChargeUtile());
             if (eMail != null)
                 System.out.println("E-Mail trouvé pour " + getChargeUtile());
-            else
-            {
+            else {
                 System.out.println("E-Mailnon trouvé pour " + getChargeUtile() + " : " + eMail);
                 eMail="?@?";
             }
     // Construction d'une réponse
             ReponseSUM rep = new ReponseSUM(ReponseSUM.EMAIL_OK, getChargeUtile() + " : " + eMail);
             ObjectOutputStream oos;
-            try
-            {
+            try {
                 oos = new ObjectOutputStream(sock.getOutputStream());
                 oos.writeObject(rep); oos.flush();
                 oos.close();
             }
-            catch (IOException e)
-            {
+            catch (IOException e) {
                 System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
             }
     }
+*/
 
-    RConnection rConn = null;
-    REXP x = null;
-    private void traiteConnexionRServe(Socket sock, ConsoleServeur cs)
-    {
-        try {
-            rConn = new RConnection("localhost");
-            System.out.println("connexion réussie");
-        } 
-        catch (RserveException ex) {
-            Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private int type;
+    private String chargeUtile;
+    private Socket socketClient;
+
+    public RequeteSUM(int t, String chu) {
+        type = t; setChargeUtile(chu);
     }
 
-    public static String GetNomFichier(String nomf) {
-        return System.getProperty("user.dir") + System.getProperty("file.separator") + "Files" + System.getProperty("file.separator") + nomf;
+    public RequeteSUM(int t, String chu, Socket s) {
+        type = t; setChargeUtile(chu); socketClient = s;
     }
 
     public String getChargeUtile() { return chargeUtile; }
 
-    public void setChargeUtile(String chargeUtile)
-    {
-        this.chargeUtile = chargeUtile;
-    }
+    public void setChargeUtile(String chargeUtile) { this.chargeUtile = chargeUtile; }
 }

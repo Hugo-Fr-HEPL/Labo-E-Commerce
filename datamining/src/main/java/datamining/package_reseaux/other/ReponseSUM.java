@@ -4,8 +4,9 @@ import java.io.*;
 
 import datamining.package_reseaux.Interface.Reponse;
 
-public class ReponseSUM implements Reponse, Serializable
-{
+
+
+public class ReponseSUM implements Reponse, Serializable {
     public static int EMAIL_OK = 201;
     public static int EMAIL_NOT_FOUND = 501;
     public static int KEY_GENERATED = 202;
@@ -14,8 +15,7 @@ public class ReponseSUM implements Reponse, Serializable
     private int codeRetour;
     private String chargeUtile;
 
-    public ReponseSUM(int c, String chu)
-    {
+    public ReponseSUM(int c, String chu) {
         codeRetour = c; setChargeUtile(chu);
     }
 

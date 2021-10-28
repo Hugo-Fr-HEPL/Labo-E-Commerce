@@ -35,9 +35,16 @@
 		</dependency>
 
     <dependency>
-        <groupId>org.rosuda.REngine</groupId>
-        <artifactId>Rserve</artifactId>
-        <version>1.8.1</version>
+      <groupId>org.rosuda.REngine</groupId>
+      <artifactId>Rserve</artifactId>
+      <version>1.8.1</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.27</version>
     </dependency>
   </dependencies>
 

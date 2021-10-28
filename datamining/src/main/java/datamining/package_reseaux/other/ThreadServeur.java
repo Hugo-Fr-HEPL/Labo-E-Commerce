@@ -7,8 +7,9 @@ import datamining.package_reseaux.Interface.ConsoleServeur;
 import datamining.package_reseaux.Interface.Requete;
 import datamining.package_reseaux.Interface.SourceTaches;
 
-public class ThreadServeur extends Thread
-{
+
+
+public class ThreadServeur extends Thread {
     int port;
     ServerSocket SSocket = null;
     Socket CSocket = null;
@@ -17,32 +18,30 @@ public class ThreadServeur extends Thread
     private SourceTaches tachesAExecuter;
     private ConsoleServeur guiApplication;
 
-    public ThreadServeur(int p, SourceTaches st)
-    {
-        port = p;
-        tachesAExecuter = st;
+    public ThreadServeur(int p, SourceTaches st) {
+        port = p; tachesAExecuter = st;
     }
 
-    public void run()
-    {
+    public void run() {
         try {
             SSocket = new ServerSocket(port);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Demarrage du pool de threads");
+        System.out.println("Démarrage du pool de threads");
 
         for (int i = 0; i < 3; i++) {
             ThreadClient thr = new ThreadClient(tachesAExecuter, "Thread du pool n° " + i);
             thr.start();
         }
 
-        while (!isInterrupted())
-        {
+        while (!isInterrupted()) {
             System.out.println("Serveur en attente");
             try {
                 CSocket = SSocket.accept();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
 
@@ -53,7 +52,8 @@ public class ThreadServeur extends Thread
                 //Reçus
                 req = (Requete) ois.readObject();
 
-            } catch (IOException | ClassNotFoundException e) {
+            }
+            catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
 
