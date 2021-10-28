@@ -11,15 +11,15 @@ import datamining.package_reseaux.other.RequeteSUM;
 
 
 public class Client {
-    public static void Connection() {
-        String chargeUtile = "Charlet";
+    public static void Connection(String mois, String comp, String request) {
         RequeteSUM req = null;
 
-        req = new RequeteSUM(RequeteSUM.CONNEXION_RSERVE, chargeUtile);
 
-        // Connexion au serveur
-        ObjectInputStream ois=null;
-        ObjectOutputStream oos=null;
+// Connexion au serveur
+        req = new RequeteSUM(RequeteSUM.CONNEXION_RSERVE);
+
+        ObjectInputStream ois = null;
+        ObjectOutputStream oos = null;
         Socket cliSock = null;
 
         Properties prop = new Properties();
@@ -67,6 +67,15 @@ public class Client {
             System.out.println("--- erreur IO = " + e.getMessage());
         }
 
-        System.out.println(rep.getChargeUtile());
+        
+// Requête SQL
+        if(request.equals("REG_CORR_LUG"))
+            req = new RequeteSUM(1, mois, comp);
+        else if(request.equals("REG_CORR_LUG_PLUS"))
+            req = new RequeteSUM(2, mois, comp);
+        else if(request.equals("ANOVA_1_LUG"))
+            req = new RequeteSUM(3, mois, comp);
+        else if(request.equals("ANOVA_2_LUG_HF"))
+            req = new RequeteSUM(4, mois, comp);
     }
 }

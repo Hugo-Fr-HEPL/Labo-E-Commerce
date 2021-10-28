@@ -101,7 +101,7 @@ public class FClient extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void BValiderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BValiderActionPerformed
-        Client.Connection();
+        Client.Connection(LMois.getSelectedItem().toString(), LCompagnie.getSelectedItem().toString(), LRequete.getSelectedItem().toString());
     }//GEN-LAST:event_BValiderActionPerformed
 
     public static void main(String args[]) {
