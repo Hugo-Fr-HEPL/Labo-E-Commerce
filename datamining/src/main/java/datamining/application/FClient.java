@@ -158,7 +158,7 @@ public class FClient extends javax.swing.JFrame {
 
     private void FillUI(Connection con, Statement instruc) {
         try {
-            ResultSet resultat = instruc.executeQuery("SELECT EXTRACT(MONTH FROM dateVol) FROM vols");
+            ResultSet resultat = instruc.executeQuery("SELECT DISTINCT EXTRACT(MONTH FROM dateVol) FROM vols");
 
             DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<String>();
             dcbm.addElement("Tous les mois");
