@@ -205,12 +205,12 @@ public class FClient extends javax.swing.JFrame {
             LMois.setModel(dcbm);
 
 
-            resultat = instruc.executeQuery("SELECT DISTINCT Compagnie FROM avions");
+            resultat = instruc.executeQuery("SELECT DISTINCT NomCompagnie FROM compagnies");
 
             dcbm = new DefaultComboBoxModel<String>();
             dcbm.addElement("Toutes les compagnies");
             while(resultat.next())
-                dcbm.addElement(resultat.getString("Compagnie"));
+                dcbm.addElement(resultat.getString(1));
             LCompagnie.setModel(dcbm);
 
             setVisible(true);
