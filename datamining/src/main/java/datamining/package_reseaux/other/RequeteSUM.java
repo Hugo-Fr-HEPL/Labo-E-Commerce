@@ -60,21 +60,21 @@ public class RequeteSUM implements Requete, Serializable {
         else if (type == REG_CORR_LUG_PLUS) {
             return new Runnable() {
                 public void run() {
-                    //traiteRegCorrPlus(s, cs);
+                    traiteRegCorrPlus(s, cs);
                 }
             };
         }
         else if (type == ANOVA_1_LUG) {
             return new Runnable() {
                 public void run() {
-                    //traiteAnova(s, cs);
+                    traiteAnova(s, cs);
                 }
             };
         }
         else if (type == ANOVA_2_LUG_HF) {
             return new Runnable() {
                 public void run() {
-                    //traiteAnovaHf(s, cs);
+                    traiteAnovaHf(s, cs);
                 }
             };
         }
@@ -88,14 +88,30 @@ public class RequeteSUM implements Requete, Serializable {
         try {
             rConn = new RConnection("localhost");
             System.out.println("connexion réussie");
+            
+            ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(rep); oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
+            
         }
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+            //Send CONNECTION NOT OK
         }
     }
 
     private void traiteRegCorr(Socket sock, ConsoleServeur cs) {
+        System.out.println("reg corr 1");
         try {
+            rConn.voidEval("");
+            /*
             rConn.voidEval("demenagements <-read.table (\"" + GetDirectory.FileDir("demenagements.csv") + "\", sep=\";\", header = TRUE)");
             System.out.println("data demenagements récupérées");
             
@@ -124,15 +140,66 @@ public class RequeteSUM implements Requete, Serializable {
 // p-value to do
             rExp = rConn.eval("tmp$");
             System.out.println("\tp-value : " + "< " + rExp.asString());
+            */
         } 
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
         } catch (REXPMismatchException e) {
             e.printStackTrace();
         }
+        
+        ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+            oos.writeObject(rep); oos.flush();
+            oos.close();
+        }
+        catch (IOException e) {
+            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+        }
     }
 
+    private void traiteRegCorrPlus(Socket sock, ConsoleServeur cs) {
+        System.out.println("reg corr 2");
+        
+        ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+            oos.writeObject(rep); oos.flush();
+            oos.close();
+        }
+        catch (IOException e) {
+            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+        }
+    }
 
+    private void traiteAnova(Socket sock, ConsoleServeur cs) {
+        System.out.println("reg anova 1");
+        
+        ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+            oos.writeObject(rep); oos.flush();
+            oos.close();
+        }
+        catch (IOException e) {
+            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+        }
+    }
+
+    private void traiteAnovaHf(Socket sock, ConsoleServeur cs) {
+        System.out.println("reg anova 2");
+        
+        ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+            oos.writeObject(rep); oos.flush();
+            oos.close();
+        }
+        catch (IOException e) {
+            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+        }
+    }
 
     private void RExpPrintSummary(REXP r, int row) {
         try {

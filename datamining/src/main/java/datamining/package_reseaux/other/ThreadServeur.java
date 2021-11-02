@@ -37,7 +37,7 @@ public class ThreadServeur extends Thread {
         }
 
         while (!isInterrupted()) {
-            System.out.println("Serveur en attente");
+            System.out.println("Serveur en attente d'une connexion");
             try {
                 CSocket = SSocket.accept();
             }
@@ -51,7 +51,6 @@ public class ThreadServeur extends Thread {
 
                 //Reçus
                 req = (Requete) ois.readObject();
-
             }
             catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -60,7 +59,6 @@ public class ThreadServeur extends Thread {
             Runnable travail = req.createRunnable(CSocket, guiApplication);
             if (travail != null) {
                 tachesAExecuter.recordTache(travail);
-                System.out.println("Travail mis dans la file");
             }
         }
     }

@@ -3,8 +3,6 @@ package datamining.package_reseaux.other;
 import java.io.*;
 import java.util.Properties;
 
-
-
 public class Server {
     public static void main(String[] args) {
         Properties prop = new Properties();
