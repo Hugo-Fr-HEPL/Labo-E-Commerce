@@ -33,26 +33,7 @@ public class RequeteSUM implements Requete, Serializable {
     public static Statement instruc = null;
     public static Properties prop;
     public static RConnection rConn = null;
-/*
-    public static Hashtable<String, String> tableMails = new Hashtable<String, String>();
 
-    static
-    {
-        tableMails.put("Vilvens", "claude.vilvens@prov-liege.be");
-        tableMails.put("Charlet", "christophe.charlet@prov-liege.be");
-        tableMails.put("Madani", "mounawar.madani@prov-liege.be");
-        tableMails.put("Wagner", "jean-marc.wagner@prov-liege.be");
-    }
-    public static Hashtable<String, String> tablePwdNoms = new Hashtable<String, String>();
-
-    static
-    {
-        tablePwdNoms.put("GrosZZ", "Vilvens");
-        tablePwdNoms.put("GrosRouteur", "Charlet");
-        tablePwdNoms.put("GrosseVoiture", "Madani");
-        tablePwdNoms.put("GrosCerveau", "Wagner");
-    }
-*/
 
     public Runnable createRunnable (final Socket s, final ConsoleServeur cs) {
         if (type == CONNEXION_RSERVE)
@@ -164,8 +145,13 @@ public class RequeteSUM implements Requete, Serializable {
             rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
             System.out.println("data reg corr créée");
 
+            rConn.voidEval("jpeg(file=\"" + GetDirectory.FileDir("reg1.jpeg") + "\",width=800, height=700)");
+            rConn.voidEval("dev.off()");
+            rConn.voidEval("dev.new()");
+            rConn.voidEval("boxplot(reg)");
+
             REXP rExp = rConn.eval("summ <- summary(reg)");
-            System.out.println("\tPoids\t\ttDistance");
+            System.out.println("\tPoids\t\tDistance");
             RExpPrintSummary(rExp, 2);
 
             rConn.voidEval("model <- lm(formula = reg$poids ~ reg$distance)");
@@ -230,7 +216,7 @@ public class RequeteSUM implements Requete, Serializable {
                 else
                     System.out.println(resultat.getDouble(1) + "\t" + resultat.getInt(2) + "\t" + resultat.getInt(3));
             }
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -288,35 +274,6 @@ public class RequeteSUM implements Requete, Serializable {
             e.printStackTrace();
         }
     }
-
-
-
-/*
-    private void traiteRequeteEMail(Socket sock, ConsoleServeur cs) {
-    // Affichage des informations
-            String adresseDistante = sock.getRemoteSocketAddress().toString();
-            System.out.println("Début de traiteRequete : adresse distante = " + adresseDistante);
-    // la charge utile est le nom du client
-            String eMail = (String)tableMails.get(getChargeUtile());
-            if (eMail != null)
-                System.out.println("E-Mail trouvé pour " + getChargeUtile());
-            else {
-                System.out.println("E-Mailnon trouvé pour " + getChargeUtile() + " : " + eMail);
-                eMail="?@?";
-            }
-    // Construction d'une réponse
-            ReponseSUM rep = new ReponseSUM(ReponseSUM.EMAIL_OK, getChargeUtile() + " : " + eMail);
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(sock.getOutputStream());
-                oos.writeObject(rep); oos.flush();
-                oos.close();
-            }
-            catch (IOException e) {
-                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-            }
-    }
-*/
 
     private int type;
     private int mois;
