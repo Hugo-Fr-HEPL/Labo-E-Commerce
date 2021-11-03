@@ -13,9 +13,9 @@ public class Client {
     static int port;
     static String adresse;
     
-    public static void Proper()
+    public static Properties Proper()
     {
-        prop = new Properties();
+        Properties prop = new Properties();
         try {
             prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
         }
@@ -25,6 +25,8 @@ public class Client {
 
         port = Integer.parseInt(prop.getProperty("Port"));
         adresse = (String) prop.get("Adresse");
+
+        return prop;
     }
     
     public static void Connection() {
@@ -73,7 +75,7 @@ public class Client {
         }
 
     }
-    public static void Statistics(String mois, String comp, String request) {
+    public static void Statistics(int mois, String comp, String request, boolean age) {
         RequeteSUM req = null;
         
         ObjectInputStream ois = null;
@@ -93,7 +95,7 @@ public class Client {
         if(request.equals("REG_CORR_LUG"))
             req = new RequeteSUM(RequeteSUM.REG_CORR_LUG, mois, comp);
         else if(request.equals("REG_CORR_LUG_PLUS"))
-            req = new RequeteSUM(RequeteSUM.REG_CORR_LUG_PLUS, mois, comp);
+            req = new RequeteSUM(RequeteSUM.REG_CORR_LUG_PLUS, mois, comp, age);
         else if(request.equals("ANOVA_1_LUG"))
             req = new RequeteSUM(RequeteSUM.ANOVA_1_LUG, mois, comp);
         else if(request.equals("ANOVA_2_LUG_HF"))
