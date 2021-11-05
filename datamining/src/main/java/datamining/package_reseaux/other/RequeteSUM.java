@@ -74,6 +74,8 @@ public class RequeteSUM implements Requete, Serializable {
             return null;
     }
 
+    
+/* Requête de Connexion */
     private void traiteConnexionRServe(Socket sock, ConsoleServeur cs) {
         try {
             rConn = new RConnection("localhost");
@@ -98,12 +100,24 @@ public class RequeteSUM implements Requete, Serializable {
         }
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
-            //Send CONNECTION NOT OK
+            
+            ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_NOK);
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(rep); oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    
+/* Requêtes Rserve */
     private void traiteRegCorr(Socket sock, ConsoleServeur cs) {
         System.out.println("reg corr 1");
         try {
@@ -145,10 +159,12 @@ public class RequeteSUM implements Requete, Serializable {
             rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
             System.out.println("data reg corr créée");
 
+/*
             rConn.voidEval("jpeg(file=\"" + GetDirectory.FileDir("reg1.jpeg") + "\",width=800, height=700)");
             rConn.voidEval("dev.off()");
             rConn.voidEval("dev.new()");
             rConn.voidEval("boxplot(reg)");
+*/
 
             REXP rExp = rConn.eval("summ <- summary(reg)");
             System.out.println("\tPoids\t\tDistance");
@@ -165,9 +181,11 @@ public class RequeteSUM implements Requete, Serializable {
             rExp = rConn.eval("tmp$adj.r.squared");
             System.out.println("\tAdjusted R Squared : " + rExp.asString());
 
-            // p-value to do
-            //rExp = rConn.eval("tmp$");
-            //System.out.println("\tp-value : " + "< " + rExp.asString());
+/*
+             p-value to do
+            rExp = rConn.eval("tmp$");
+            System.out.println("\tp-value : " + "< " + rExp.asString());
+*/
         } 
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
@@ -210,13 +228,82 @@ public class RequeteSUM implements Requete, Serializable {
             req += " GROUP BY bi.idClient, v.distance, nombreAccompagnant";
 
             ResultSet resultat = instruc.executeQuery(req);
+/*
             while (resultat.next()) {
                 if(age)
                     System.out.println(resultat.getDouble(1) + "\t" + resultat.getInt(2) + "\t" + resultat.getInt(3) + "\t" + resultat.getInt(4));
                 else
                     System.out.println(resultat.getDouble(1) + "\t" + resultat.getInt(2) + "\t" + resultat.getInt(3));
             }
+*/
+            resultat.next();
+            String poids = resultat.getString(1);
+            String distance = resultat.getString(2);
+            String nbAccompReq = resultat.getString(3);
+            String ageReq = resultat.getString(4);
 
+            while(resultat.next()) {
+                if(resultat.getString(1) != null) {
+                    poids += ",";
+                    poids += resultat.getString(1);
+                }
+
+                if(resultat.getString(2) != null) {
+                    distance += ',';
+                    distance += resultat.getString(2);
+                }
+
+                if(resultat.getString(3) != null) {
+                    nbAccompReq += ',';
+                    nbAccompReq += resultat.getString(3);
+                }
+
+                if(resultat.getString(4) != null) {
+                    ageReq += ',';
+                    ageReq += resultat.getString(4);
+                }
+            }
+
+            req = "reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +")";
+            if(nbAccomp)
+                req += ", distance = c("+ nbAccompReq +")";
+            if(age)
+                req += ", distance = c("+ ageReq +")";
+            req += ")";
+            rConn.voidEval(req);
+            System.out.println("data reg corr plus créée");
+
+/*
+            rConn.voidEval("jpeg(file=\"" + GetDirectory.FileDir("reg2.jpeg") + "\",width=800, height=700)");
+            rConn.voidEval("dev.off()");
+            rConn.voidEval("dev.new()");
+            rConn.voidEval("boxplot(reg)");
+*/
+
+            REXP rExp = rConn.eval("summ <- summary(reg)");
+            int i = 2;
+            
+            System.out.print("\tPoids\t\tDistance");
+            if(nbAccomp) {
+                System.out.print("\t\tNb Accomp");
+                i++;
+            }
+            if(age) {
+                System.out.print("\t\t Age");
+                i++;
+            }
+            RExpPrintSummary(rExp, i);
+            
+            rConn.voidEval("model <- lm(formula = reg$poids ~ reg$distance)");  // Comment faire?
+
+            rConn.voidEval("tmp <- summary(model)");
+            rExp = rConn.eval("tmp$coefficients");
+            System.out.println("\nfinal summary :");
+            System.out.println("\tEstimate\t\tStd. Error\t\tt value\t\tPr(>|t|)");
+            RExpPrintSummary(rExp, 4);
+
+            rExp = rConn.eval("tmp$adj.r.squared");
+            System.out.println("\tAdjusted R Squared : " + rExp.asString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -232,8 +319,64 @@ public class RequeteSUM implements Requete, Serializable {
         }
     }
 
+    
     private void traiteAnova(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 1");
+        try {
+            String req  = "SELECT AVG(ba.poids), destination FROM bagages ba"+
+            " INNER JOIN billets bi ON (ba.idBillet = bi.idBillet)"+
+            " INNER JOIN vols v ON (bi.numVol = v.numVol)"+
+            " INNER JOIN avions a ON (v.idAvion = a.idAvion)"+
+            " INNER JOIN compagnies c ON (a.idCompagnie = c.idCompagnie)";
+
+            if(mois != 0 && comp.equals("Toutes les compagnies") == false) {
+                req += " WHERE nomCompagnie = '"+ comp +"'"+
+                        " AND EXTRACT(MONTH FROM dateVol) = "+ mois;
+            } else {
+                if(comp.equals("Toutes les compagnies") == false)
+                    req += " WHERE nomCompagnie = '"+ comp +"'";
+                if(mois != 0)
+                    req += " WHERE EXTRACT(MONTH FROM dateVol) = "+ mois;
+            }
+            req += " GROUP BY bi.idClient";
+
+            ResultSet resultat = instruc.executeQuery(req);
+            
+            resultat.next();
+            String poids = resultat.getString(1);
+            String destination = ("\"" + resultat.getString(2) + "\"");
+
+            while(resultat.next()) {
+                if(resultat.getString(1) != null) {
+                    poids += ",";
+                    poids += resultat.getString(1);
+                }
+
+                if(resultat.getString(2) != null) {
+                    destination += ",";
+                    destination += ("\"" + resultat.getString(2) + "\"");
+                }
+            }
+            
+            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"))");
+            System.out.println("data anova1 créée");
+            
+            REXP rExp = rConn.eval("summ <- summary(anova)");
+            System.out.println("\tPoids\t\tDestination");
+            RExpPrintSummary(rExp, 2);
+            
+            rConn.voidEval("model <- lm(anova$poids ~ anova$destination)");
+            System.out.println("model créé");
+            
+            rExp = rConn.eval("anova(model)");
+            System.out.println(rExp);
+            //récupérer données du modele
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (RserveException ex) {
+            Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
         try {
@@ -248,6 +391,68 @@ public class RequeteSUM implements Requete, Serializable {
 
     private void traiteAnovaHf(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 2");
+        try {
+            String req  = "SELECT AVG(ba.poids), destination, cl.sexe FROM bagages ba"+
+            " INNER JOIN billets bi ON (ba.idBillet = bi.idBillet)"+
+            " INNER JOIN vols v ON (bi.numVol = v.numVol)"+
+            " INNER JOIN avions a ON (v.idAvion = a.idAvion)"+
+            " INNER JOIN compagnies c ON (a.idCompagnie = c.idCompagnie)"+
+            " INNER JOIN clients cl USING(idclient)";
+
+            if(mois != 0 && comp.equals("Toutes les compagnies") == false) {
+                req += " WHERE nomCompagnie = '"+ comp +"'"+
+                        " AND EXTRACT(MONTH FROM dateVol) = "+ mois;
+            } else {
+                if(comp.equals("Toutes les compagnies") == false)
+                    req += " WHERE nomCompagnie = '"+ comp +"'";
+                if(mois != 0)
+                    req += " WHERE EXTRACT(MONTH FROM dateVol) = "+ mois;
+            }
+            req += " GROUP BY bi.idClient, cl.sexe";
+
+            ResultSet resultat = instruc.executeQuery(req);
+            
+            resultat.next();
+            String poids = resultat.getString(1);
+            String destination = ("\"" + resultat.getString(2) + "\"");
+            String sexe = ("\"" + resultat.getString(3) + "\"");
+
+            while(resultat.next()) {
+                if(resultat.getString(1) != null) {
+                    poids += ",";
+                    poids += resultat.getString(1);
+                }
+
+                if(resultat.getString(2) != null) {
+                    destination += ",";
+                    destination += ("\"" + resultat.getString(2) + "\"");
+                }
+
+                if(resultat.getString(3) != null) {
+                    sexe += ",";
+                    sexe += ("\"" + resultat.getString(3) + "\"");
+                }
+            }
+            
+            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"), destination = c("+ sexe +"))");
+            System.out.println("data anova2 créée");
+            
+            REXP rExp = rConn.eval("summ <- summary(anova)");
+            System.out.println("\tPoids\t\tDestination\t\tSexe");
+            RExpPrintSummary(rExp, 3);
+            
+            rConn.voidEval("model <- lm(anova$poids ~ anova$destination)");
+            System.out.println("model créé");
+            
+            rExp = rConn.eval("anova(model)");
+            System.out.println(rExp);
+            //récupérer données du modele
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (RserveException ex) {
+            Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
         try {
@@ -279,6 +484,7 @@ public class RequeteSUM implements Requete, Serializable {
     private int mois;
     private String comp;
     private boolean age;
+    private boolean nbAccomp;
     private Socket socketClient;
 
     public RequeteSUM(int t) {
@@ -289,7 +495,7 @@ public class RequeteSUM implements Requete, Serializable {
         type = t; mois = m; comp = c;
     }
 
-    public RequeteSUM(int t, int m, String c, boolean a) {
-        type = t; mois = m; comp = c; age = a;
+    public RequeteSUM(int t, int m, String c, boolean a, boolean n) {
+        type = t; mois = m; comp = c; age = a; nbAccomp = n;
     }
 }
