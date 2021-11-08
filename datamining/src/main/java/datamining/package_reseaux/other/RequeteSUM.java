@@ -163,7 +163,9 @@ public class RequeteSUM implements Requete, Serializable {
                 histo[i][0] = liste1.get(i);
                 histo[i][1] = liste2.get(i);
             }
-            
+            jFreeChart.ShowScatterPoint("Reg - Scatter Points", "y", "x", histo);
+
+
             resultat = instruc.executeQuery("SELECT DISTINCT EXTRACT(YEAR FROM dateVol), distance FROM vols");
             resultat.next();
             liste2 = new ArrayList<Double>();
@@ -179,13 +181,19 @@ public class RequeteSUM implements Requete, Serializable {
             }
             double[] scatterDouble = new double[cpt - 1];
             String[] scatterString = new String[cpt - 1];
-            for(int i = 0; i < cpt - 1; i++) {
-                scatterDouble[i] = liste2.get(i);
-                scatterString[i] = liste3.get(i);
+            for(int i = 0, j, k = 0; i < cpt - 1; i++) {
+                for(j = 0; j < cpt - 1; j++) {
+                    if(liste3.get(i).equals(scatterString[j]))
+                        scatterDouble[j] += liste2.get(i);
+                }
+                if(j == cpt) {
+                    scatterDouble[k] = liste2.get(i);
+                    scatterString[k] = liste3.get(i);
+                    k++;
+                }
             }
-
-            jFreeChart.ShowScatterPoint("Reg - Scatter Points", "y", "x", histo);
             jFreeChart.ShowHistogram("Reg - Histogram", "Distance", "Années", scatterDouble, scatterString);
+
 
             rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
             System.out.println("data reg corr créée");
