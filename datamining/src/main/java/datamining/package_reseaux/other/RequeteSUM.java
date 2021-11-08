@@ -123,7 +123,6 @@ public class RequeteSUM implements Requete, Serializable {
         boolean ok = false;
         ReponseSUM rep;
         double pval = 0, Rsq = 0;
-        String conclusion = "";
         
         try {
             String req  = "SELECT AVG(ba.poids), v.distance FROM bagages ba"+
@@ -201,6 +200,7 @@ public class RequeteSUM implements Requete, Serializable {
             e.printStackTrace();
         }
 
+        String conclusion = "";
         if(ok == true) {
             if( Rsq <= -0.5 || 0.5 <= Rsq)
                 conclusion = pval <= 0.20 ? "Corrélation entre le poids et la distance" : "Pas de corrélation entre le poids et la distance";
@@ -224,8 +224,9 @@ public class RequeteSUM implements Requete, Serializable {
 
     private void traiteRegCorrPlus(Socket sock, ConsoleServeur cs) {
         System.out.println("reg corr 2");
-        boolean ok=false;
+        boolean ok = false;
         ReponseSUM rep;
+        double pval = 0, Rsq = 0;
         
         try {
             String req  = "SELECT AVG(ba.poids), v.distance, nombreAccompagnant, age FROM bagages ba"+
@@ -320,7 +321,6 @@ public class RequeteSUM implements Requete, Serializable {
                 reqmodel += " + reg$nbAccomp";
             if(age)
                 reqmodel += " + reg$age";
-            
             reqmodel+=")";
             
             rConn.voidEval(reqmodel);
@@ -333,8 +333,19 @@ public class RequeteSUM implements Requete, Serializable {
 
             rExp = rConn.eval("tmp$adj.r.squared");
             System.out.println("\tAdjusted R Squared : " + rExp.asString());
-            ok = true;
-            
+            Rsq = rExp.asDouble();
+
+            rExp = rConn.eval("tmp$df");
+            double[] degreLib = rExp.asDoubles();
+
+            rExp = rConn.eval("tmp$fstatistic");
+            double fStat = rExp.asDouble();
+
+            rExp = rConn.eval("pf("+ fStat +", "+ degreLib[0] +", "+ degreLib[1] +", lower.tail = F)");
+            System.out.println("\n\tP-value : " + rExp.asString());
+            pval = rExp.asDouble();
+
+            ok = true;            
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (RserveException ex) {
@@ -342,14 +353,19 @@ public class RequeteSUM implements Requete, Serializable {
         } catch (REXPMismatchException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        rep = ok ? new ReponseSUM(ReponseSUM.STATISTIC_OK) : new ReponseSUM(ReponseSUM.STATISTIC_NOK);
-        /*
-        if(ok == true)
-            rep = new ReponseSUM(ReponseSUM.STATISTIC_OK);
+
+        String conclusion = "";
+        if(ok == true) {
+            if(Rsq <= -0.5 || 0.5 <= Rsq)
+                conclusion = pval <= 0.20 ? "Corrélation entre le poids et la distance" : "Pas de corrélation entre le poids et la distance";
+            else
+                conclusion = "Pas confiance aux régresseurs";
+            
+            rep = new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion);
+        }
         else
-            rep = new ReponseSUM(ReponseSUM.STATISTIC_NOK);
-            */
+            rep = new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion);
+
         try {
             ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
             oos.writeObject(rep); oos.flush();
@@ -363,10 +379,9 @@ public class RequeteSUM implements Requete, Serializable {
     
     private void traiteAnova(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 1");
-        boolean ok=false;
+        boolean ok = false;
         ReponseSUM rep;
-        double pval=0;
-        String conclusion="";
+        double pval = 0;
         
         try {
             String req  = "SELECT AVG(ba.poids), destination FROM bagages ba"+
@@ -415,6 +430,7 @@ public class RequeteSUM implements Requete, Serializable {
             System.out.println("model créé");
             
             rConn.voidEval("tmp <- anova(model)");
+// SHOW
 
             rExp = rConn.eval("tmp$Pr");
             System.out.println("\tP-value : " + rExp.asString());
@@ -429,6 +445,7 @@ public class RequeteSUM implements Requete, Serializable {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        String conclusion = "";
         if(ok == true) {
             conclusion = pval <= 0.20 ? "Lien entre le poids et la destination" : "Pas de lien entre le poids et la destination";
             rep = new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion);
@@ -448,8 +465,9 @@ public class RequeteSUM implements Requete, Serializable {
 
     private void traiteAnovaHf(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 2");
-        boolean ok=false;
+        boolean ok = false;
         ReponseSUM rep;
+        double pval = 0;
         
         try {
             String req  = "SELECT AVG(ba.poids), destination, cl.sexe FROM bagages ba"+
@@ -504,21 +522,36 @@ public class RequeteSUM implements Requete, Serializable {
             rConn.voidEval("model <- lm(anova$poids ~ anova$destination)");
             System.out.println("model créé");
             
-            rExp = rConn.eval("anova(model)");
-            System.out.println(rExp);
-            //récupérer données du modele
+            rExp = rConn.eval("tmp <- anova(model)");
+            //System.out.println(rExp);
+
+            rExp = rConn.eval("tmp$df");
+            double[] degreLib = rExp.asDoubles();
+
+            rExp = rConn.eval("tmp$fstatistic");
+            double fStat = rExp.asDouble();
+
+            rExp = rConn.eval("pf("+ fStat +", "+ degreLib[0] +", "+ degreLib[1] +", lower.tail = F)");
+            System.out.println("\n\tP-value : " + rExp.asString());
+            pval = rExp.asDouble();
+
             ok = true;
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (REXPMismatchException e) {
+            e.printStackTrace();
         }
-        
-        if(ok == true)
-            rep = new ReponseSUM(ReponseSUM.STATISTIC_OK);
+
+        String conclusion = "";
+        if(ok == true) {
+            conclusion = pval <= 0.20 ? "Lien entre le poids et la destination" : "Pas de lien entre le poids et la destination";
+            rep = new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion);
+        }
         else
-            rep = new ReponseSUM(ReponseSUM.STATISTIC_NOK);
-            
+            rep = new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion);
+
         try {
             ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
             oos.writeObject(rep); oos.flush();
