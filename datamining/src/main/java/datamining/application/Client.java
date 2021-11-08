@@ -75,7 +75,7 @@ public class Client {
         }
 
     }
-    public static void Statistics(int mois, String comp, String request, boolean age, boolean nbAccomp) {
+    public static String Statistics(int mois, String comp, String request, boolean age, boolean nbAccomp) {
         RequeteSUM req = null;
         
         ObjectInputStream ois = null;
@@ -126,5 +126,7 @@ public class Client {
         } catch (IOException e) {
             System.out.println("--- erreur IO = " + e.getMessage());
         }
+
+        return rep.getChargeUtile();
     }
 }
