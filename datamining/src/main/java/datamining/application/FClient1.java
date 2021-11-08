@@ -231,7 +231,6 @@ public class FClient1 extends javax.swing.JFrame {
     }//GEN-LAST:event_LRequeteActionPerformed
 
     private void ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ActionPerformed
-        // TODO add your handling code here:
     }//GEN-LAST:event_ActionPerformed
 
     /**
