@@ -75,7 +75,7 @@ public class Client {
         }
 
     }
-    public static void Statistics(int mois, String comp, String request, boolean age) {
+    public static void Statistics(int mois, String comp, String request, boolean age, boolean nbAccomp) {
         RequeteSUM req = null;
         
         ObjectInputStream ois = null;
@@ -95,7 +95,7 @@ public class Client {
         if(request.equals("REG_CORR_LUG"))
             req = new RequeteSUM(RequeteSUM.REG_CORR_LUG, mois, comp);
         else if(request.equals("REG_CORR_LUG_PLUS"))
-            req = new RequeteSUM(RequeteSUM.REG_CORR_LUG_PLUS, mois, comp, age);
+            req = new RequeteSUM(RequeteSUM.REG_CORR_LUG_PLUS, mois, comp, age, nbAccomp);
         else if(request.equals("ANOVA_1_LUG"))
             req = new RequeteSUM(RequeteSUM.ANOVA_1_LUG, mois, comp);
         else if(request.equals("ANOVA_2_LUG_HF"))
@@ -114,15 +114,16 @@ public class Client {
         try {
             ois = new ObjectInputStream(cliSock.getInputStream());
             rep = (ReponseSUM)ois.readObject();
-            if(rep.getCode()==201)
-                System.out.println(" *** Reponse reçue : Connection ok");
+            if(rep.getCode() == 301) {
+                System.out.println(" *** Reponse reçue : Statistic ok");
+                System.out.println(rep.getChargeUtile());
+            }
             else
-                System.out.println(" *** Reponse reçue : Connection echouée");
+                System.out.println(" *** Reponse reçue : Statistic echouée");
         }
         catch (ClassNotFoundException e) {
             System.out.println("--- erreur sur la classe = " + e.getMessage());
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("--- erreur IO = " + e.getMessage());
         }
     }

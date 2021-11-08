@@ -8,9 +8,9 @@ import datamining.package_reseaux.Interface.Reponse;
 
 public class ReponseSUM implements Reponse, Serializable {
     public static int CONNECTION_OK = 201;
-    public static int EMAIL_NOT_FOUND = 501;
-    public static int KEY_GENERATED = 202;
-    public static int WRONG_PASSWORD = 401;
+    public static int CONNECTION_NOK = 202;
+    public static int STATISTIC_OK = 301;
+    public static int STATISTIC_NOK = 302;
 
     private int codeRetour;
     private String chargeUtile;
