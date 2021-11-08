@@ -511,19 +511,23 @@ public class RequeteSUM implements Requete, Serializable {
                     sexe += ("\"" + resultat.getString(3) + "\"");
                 }
             }
+            System.out.println("SEXE " + sexe);
             
-            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"), destination = c("+ sexe +"))");
+            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"), sexe = c("+ sexe +"))");
             System.out.println("data anova2 créée");
             
             REXP rExp = rConn.eval("summ <- summary(anova)");
             System.out.println("\tPoids\t\tDestination\t\tSexe");
             RExpPrintSummary(rExp, 3);
             
-            rConn.voidEval("model <- lm(anova$poids ~ anova$destination)");
+            rConn.voidEval("model <- lm(anova$poids ~ anova$destination + anova$sexe)");
             System.out.println("model créé");
             
-            rExp = rConn.eval("tmp <- anova(model)");
-            //System.out.println(rExp);
+            rExp = rConn.eval("tmp <- summary(model)");
+            rExp = rConn.eval("tmp$coefficients");
+            System.out.println("\nfinal summary :");
+            System.out.println("\tEstimate\t\tStd. Error\t\tt value\t\tPr(>|t|)");
+            RExpPrintSummary(rExp, 4);
 
             rExp = rConn.eval("tmp$df");
             double[] degreLib = rExp.asDoubles();
