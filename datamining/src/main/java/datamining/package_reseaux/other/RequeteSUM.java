@@ -83,8 +83,10 @@ public class RequeteSUM implements Requete, Serializable {
 /* Requête de Connexion */
     private void traiteConnexionRServe(Socket sock, ConsoleServeur cs) {
         try {
-            rConn = new RConnection("localhost");
-            System.out.println("connexion réussie");
+            if(rConn == null) {
+                rConn = new RConnection("localhost");
+                System.out.println("connexion réussie");
+            }
             
             ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
             ObjectOutputStream oos;
@@ -168,6 +170,12 @@ public class RequeteSUM implements Requete, Serializable {
             rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
             System.out.println("data reg corr créée");
 
+            /*
+            var dataset = new HistogramDataset();
+            dataset.addSeries("key", double[] tmp = new Double[0.0, 0.0], 50);
+            JFreeChart histogram = ChartFactory.createHistogram("Normal distribution", "y values", "x values", dataset);
+            ChartUtils.saveChartAsPNG(new File("\"" + GetDirectory.FileDir("reg1.jpeg") + "\""), histogram, 800, 700);
+            */
 /*
             rConn.voidEval("jpeg(file=\"" + GetDirectory.FileDir("reg1.jpeg") + "\",width=800, height=700)");
             rConn.voidEval("dev.off()");
