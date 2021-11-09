@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Application_Pistes</string>
+
+    <string name="not_connected">Non Connecté</string>
+    <string name="connected">Connecté</string>
+    <string name="id_flight">Id du vol</string>
+    <string name="search">Chercher</string>
+</resources>

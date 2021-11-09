@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Application_Pistes</string>
+
+    <string name="not_connected">No Conectado</string>
+    <string name="connected">Conectado</string>
+    <string name="id_flight">Id vuelo</string>
+    <string name="search">Buscar</string>
+</resources>
