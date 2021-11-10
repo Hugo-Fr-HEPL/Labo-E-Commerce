@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <TableLayout
         android:id="@+id/tableLayout"
         android:layout_width="0dp"
@@ -56,7 +55,6 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="150dp"
         android:layout_marginEnd="50dp"
-        android:clickable="false"
         android:onClick="SearchClick"
         android:text="@string/search"
         app:layout_constraintEnd_toEndOf="parent"

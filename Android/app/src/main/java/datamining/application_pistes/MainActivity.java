@@ -2,10 +2,13 @@ package datamining.application_pistes;
 
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+
+import android.support.v7.app.ActionBar;
 
 import java.util.ArrayList;
 
@@ -17,8 +20,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //setSupportActionBar(toolbar);
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
+
         ConnectButton(null);
     }
+/*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings)
+            return true;
+        return super.onOptionsItemSelected(item);
+    }
+*/
 
     public void ConnectButton(View v) {
         thread = new Connection();
@@ -35,42 +56,26 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        if(timer < 5) {
-            ((TextView)findViewById(R.id.ConnectButton)).setText("@string/connected");
+        if(timer < 25) {
+            Resources res = (LangManager.setLocale(MainActivity.this, "en")).getResources();
+            ((TextView)findViewById(R.id.ConnectButton)).setText(res.getString(R.string.connected));
             ((TextView)findViewById(R.id.ConnectButton)).setTextColor(Color.GREEN);
-            findViewById(R.id.ConnectButton).setClickable(false);
+            //findViewById(R.id.ConnectButton).setClickable(false);
+            findViewById(R.id.SearchButton).setClickable(true);
         }
-
-/*
-        // Envoie de la requête
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(cliSock.getOutputStream());
-            oos.writeObject(req); oos.flush();
-        }
-        catch (IOException e) {
-            System.err.println("Error network ? [" + e.getMessage() + "]");
-        }
-
-        // Lecture de la réponse
-        ReponseSUM rep = null;
-        try {
-            ObjectInputStream ois = new ObjectInputStream(cliSock.getInputStream());
-            rep = (ReponseSUM)ois.readObject();
-            if(rep.getCode()==201)
-                System.out.println(" *** Answer : Connection ok");
-            else
-                System.out.println(" *** Answer : Connection failed");
-        }
-        catch (ClassNotFoundException e) {
-            System.out.println("--- Error with class = " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("--- Error IO = " + e.getMessage());
-        }
- */
     }
 
     public void SearchClick(View v) {
         UpdateText("fr");
+
+        if(((Connection)thread).getSocket() != null) {
+            ((Connection)thread).SendMsg("//-"+ RequeteSUM.CONNEXION_RSERVE +"$");
+            //((Connection)thread).SendMsg("--" + (new RequeteSUM(RequeteSUM.CONNEXION_RSERVE).toString()) + "$");
+
+            if(Integer.parseInt(((Connection)thread).GetMsg()) == ReponseSUM.CONNECTION_OK) {
+                ((Connection)thread).GetMsg();
+            }
+        }
     }
     
     public void UpdateText(String lang) {

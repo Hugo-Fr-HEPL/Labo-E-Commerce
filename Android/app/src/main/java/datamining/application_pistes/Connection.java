@@ -1,5 +1,7 @@
 package datamining.application_pistes;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -8,8 +10,8 @@ import java.net.UnknownHostException;
 
 public class Connection extends Thread {
     private Socket sock = null;
-    private ObjectOutputStream oos = null;
-    private ObjectInputStream ois = null;
+    //private ObjectOutputStream dos = null;
+    private ObjectInputStream dis = null;
 
     @Override
     public void run() {
@@ -22,6 +24,7 @@ public class Connection extends Thread {
             e.printStackTrace();
         }
 
+/*
         try {
             Connection con = MySQL.MySQL_Connexion("bd_airport", (String)prop.get("DB_port"), "localhost", (String)prop.get("DB"), (String)prop.get("DB_pwd"));
             Statement instruc = con.createStatement();
@@ -34,8 +37,8 @@ public class Connection extends Thread {
 */
         try {
             sock = new Socket("192.168.1.98", 50000);
-            oos = new ObjectOutputStream(sock.getOutputStream());
-            ois = new ObjectInputStream(sock.getInputStream());
+            //dos = new ObjectOutputStream(sock.getOutputStream());
+            dis = new ObjectInputStream(sock.getInputStream());
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -44,6 +47,31 @@ public class Connection extends Thread {
     }
 
     public Socket getSocket() { return sock; }
-    public ObjectOutputStream getOos() { return oos; }
-    public ObjectInputStream getOis() { return ois; }
+    //public ObjectOutputStream getDos() { return dos; }
+    //public ObjectInputStream getDis() { return dis; }
+
+    public void SendMsg(String msg) {
+        try {
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            dos.writeUTF(msg); dos.flush();
+        } catch (IOException e) {
+            System.err.println("Error network ? [" + e.getMessage() + "]");
+        }
+    }
+
+    public String GetMsg() {
+        byte b = 0;
+        StringBuffer msg = new StringBuffer();
+        try {
+            DataInputStream dis = new DataInputStream(sock.getInputStream());
+
+            while((b = dis.readByte()) != (byte)'$')
+                if(b != '$')
+                    msg.append((char)b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Recu " + msg.toString());
+        return msg.toString();
+    }
 }

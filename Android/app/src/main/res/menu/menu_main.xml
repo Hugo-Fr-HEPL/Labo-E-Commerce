@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/en"
+        android:title="English" />
+    <item
+        android:id="@+id/fr"
+        android:title="Français" />
+    <item
+        android:id="@+id/es"
+        android:title="Espanol" />
+</menu>
