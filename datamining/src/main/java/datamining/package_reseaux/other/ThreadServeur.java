@@ -44,16 +44,20 @@ public class ThreadServeur extends Thread {
             catch (IOException e) {
                 e.printStackTrace();
             }
-
             System.out.println("Le serveur est connecté");
+
+// Get Message
             try {
                 ObjectInputStream ois = new ObjectInputStream(CSocket.getInputStream());
 
-                //Reçus
                 req = (Requete) ois.readObject();
             }
             catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+                String[] msg = GetMsg();
+                if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_RSERVE * -1) {
+                    new RequeteSUM(Integer.parseInt(msg[1]));
+                    req = new RequeteSUM(Integer.parseInt(msg[0]));
+                }
             }
 
             Runnable travail = req.createRunnable(CSocket, guiApplication);
@@ -61,5 +65,28 @@ public class ThreadServeur extends Thread {
                 tachesAExecuter.recordTache(travail);
             }
         }
+    }
+
+    public String[] GetMsg() {
+        byte b = 0;
+        String[] msg = new String[100];
+        try {
+            DataInputStream dis = new DataInputStream(CSocket.getInputStream());
+
+            int i = 0;
+            msg[i] = "";
+            while((b = dis.readByte()) != (byte)'$') {
+                if(b != '$' && b != '#')
+                    msg[i] += (char)b;
+                if(b == '#') {
+                    i++;
+                    msg[i] = "";
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Recu " + msg[0] + " - " + msg[1]);
+        return msg;
     }
 }

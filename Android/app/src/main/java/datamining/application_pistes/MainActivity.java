@@ -6,6 +6,7 @@ import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import android.support.v7.app.ActionBar;
@@ -69,11 +70,12 @@ public class MainActivity extends AppCompatActivity {
         UpdateText("fr");
 
         if(((Connection)thread).getSocket() != null) {
-            ((Connection)thread).SendMsg("//-"+ RequeteSUM.CONNEXION_RSERVE +"$");
+            ((Connection)thread).SendMsg("//-"+ RequeteSUM.CONNEXION_ANDROID +"#-"+ ((EditText)findViewById(R.id.IdFlight)).getText() +"$");
             //((Connection)thread).SendMsg("--" + (new RequeteSUM(RequeteSUM.CONNEXION_RSERVE).toString()) + "$");
 
-            if(Integer.parseInt(((Connection)thread).GetMsg()) == ReponseSUM.CONNECTION_OK) {
-                ((Connection)thread).GetMsg();
+            String[] msg = ((Connection)thread).GetMsg();
+            if(Integer.parseInt(msg[0]) == ReponseSUM.CONNECTION_OK) {
+                // Display list
             }
         }
     }

@@ -5,7 +5,6 @@ import datamining.package_reseaux.Interface.*;
 
 import java.io.*;
 import java.net.Socket;
-//import java.util.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -29,6 +28,7 @@ public class RequeteSUM implements Requete, Serializable {
     public static int REG_CORR_LUG_PLUS = 3;
     public static int ANOVA_1_LUG = 4;
     public static int ANOVA_2_LUG_HF = 5;
+    public static int CONNEXION_ANDROID = 6;
 
     public static Connection con = null;
     public static Statement instruc = null;
@@ -37,7 +37,7 @@ public class RequeteSUM implements Requete, Serializable {
 
 
     public Runnable createRunnable (final Socket s, final ConsoleServeur cs) {
-        if (type == CONNEXION_RSERVE)
+        if (type <= CONNEXION_RSERVE)
             return new Runnable() {
                 public void run() {
                     traiteConnexionRServe(s, cs);
@@ -71,6 +71,13 @@ public class RequeteSUM implements Requete, Serializable {
                 }
             };
         }
+        else if (type == CONNEXION_ANDROID) {
+            return new Runnable() {
+                public void run() {
+                    traiteAndroid(s, cs);
+                }
+            };
+        }
         else
             return null;
     }
@@ -86,12 +93,10 @@ public class RequeteSUM implements Requete, Serializable {
                 System.out.println("connexion réussie");
             }
             
-            ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_OK);
-            ObjectOutputStream oos;
             try {
-                oos = new ObjectOutputStream(sock.getOutputStream());
-                oos.writeObject(rep); oos.flush();
-                oos.close();
+                ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(new ReponseSUM(ReponseSUM.CONNECTION_OK));
+                oos.flush(); oos.close();
             }
             catch (IOException e) {
                 System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
@@ -105,18 +110,52 @@ public class RequeteSUM implements Requete, Serializable {
         }
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
-            
-            ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_NOK);
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(sock.getOutputStream());
-                oos.writeObject(rep); oos.flush();
-                oos.close();
-            }
-            catch (IOException e) {
-                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-            }
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+/*
+    Requete Android
+*/
+    private void traiteAndroid(Socket sock, ConsoleServeur cs) {
+        try {
+            prop = Client.Proper();
+
+            con = MySQL.MySQL_Connexion("bd_airport", (String)prop.get("DB_port"), "localhost", (String)prop.get("DB"), (String)prop.get("DB_pwd"));
+            instruc = con.createStatement();
+            System.out.println("-- DB Connected --");
+
+            SendMsgAndroid(sock);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void SendMsgAndroid(Socket sock) {
+        String req  = "SELECT ba.idBagage"+
+        " FROM bagages ba"+
+        " INNER JOIN billets bi USING(idBillet)"+
+        " INNER JOIN vols v USING(numVol)"+
+        " WHERE v.numVol = "+ type * -1;
+        
+        try {
+            ResultSet resultat = instruc.executeQuery(req);
+            String msg = "";
+
+            while(resultat.next()) {
+                msg += "%";
+                msg += resultat.getString(1);
+            }
+            
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            dos.writeUTF(ReponseSUM.CONNECTION_OK + "#" + msg +"$");
+            dos.flush(); dos.close();
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

@@ -36,7 +36,7 @@ public class Connection extends Thread {
         }
 */
         try {
-            sock = new Socket("192.168.1.98", 50000);
+            sock = new Socket("10.59.22.46", 50000);
             //dos = new ObjectOutputStream(sock.getOutputStream());
             dis = new ObjectInputStream(sock.getInputStream());
         } catch (UnknownHostException e) {
@@ -59,19 +59,26 @@ public class Connection extends Thread {
         }
     }
 
-    public String GetMsg() {
+    public String[] GetMsg() {
         byte b = 0;
-        StringBuffer msg = new StringBuffer();
+        String[] msg = new String[10];
         try {
             DataInputStream dis = new DataInputStream(sock.getInputStream());
 
-            while((b = dis.readByte()) != (byte)'$')
-                if(b != '$')
-                    msg.append((char)b);
+            int i = 0;
+            msg[i] = "";
+            while((b = dis.readByte()) != (byte)'$') {
+                if(b != '$' && b != '#')
+                    msg[i] += (char)b;
+                if(b == '#') {
+                    i++;
+                    msg[i] = "";
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Recu " + msg.toString());
-        return msg.toString();
+        System.out.println("Recu " + msg[0] + " - "+ msg[1]);
+        return msg;
     }
 }
