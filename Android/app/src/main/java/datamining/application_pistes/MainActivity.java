@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
 
         if(((Connection)thread).getSocket() != null) {
             ((Connection)thread).SendMsg("//-"+ RequeteSUM.CONNEXION_ANDROID +"#-"+ ((EditText)findViewById(R.id.IdFlight)).getText() +"$");
-            //((Connection)thread).SendMsg("--" + (new RequeteSUM(RequeteSUM.CONNEXION_RSERVE).toString()) + "$");
 
             String[] msg = ((Connection)thread).GetMsg();
             if(Integer.parseInt(msg[0]) == ReponseSUM.CONNECTION_OK) {
@@ -98,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         text.get(0).setText(res.getString(R.string.connected));
-        text.get(1).setText(res.getString(R.string.id_flight));
+        text.get(1).setHint(res.getString(R.string.id_flight));
         text.get(2).setText(res.getString(R.string.search));
     }
 }
