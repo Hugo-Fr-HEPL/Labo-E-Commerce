@@ -37,17 +37,18 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, arrayList);
         list.setAdapter(adapter);
 
+        ConnectButton(null);
+
         this.list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                System.out.println("CLICK");
                 CheckedTextView v = (CheckedTextView) view;
-                list.setItemChecked(position, true);
-                //(list.getItemAtPosition(position)) = !v.isChecked();
+                v.setChecked(!v.isChecked());
+
+                // Check if every box are checked -> Return back (where ?)
+                //if(list.isItemChecked(position)) System.out.println("OUI");
             }
         });
-
-        ConnectButton(null);
     }
 
 
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         Resources res = (LangManager.setLocale(this, lang)).getResources();
 
         ArrayList<TextView> text = new ArrayList<>();
-        int[] id = {R.id.ConnectButton, R.id.IdFlight, R.id.SearchButton};
+        int[] id = {R.id.ConnectButton, R.id.IdFlight, R.id.SearchButton, R.id.BagText};
 
         //TextView tmp = ((TextView)findViewById(id[0]));
 
@@ -139,5 +140,6 @@ public class MainActivity extends AppCompatActivity {
         text.get(0).setText(res.getString(R.string.connected));
         text.get(1).setHint(res.getString(R.string.id_flight));
         text.get(2).setText(res.getString(R.string.search));
+        text.get(3).setText(res.getString(R.string.bags_list));
     }
 }
