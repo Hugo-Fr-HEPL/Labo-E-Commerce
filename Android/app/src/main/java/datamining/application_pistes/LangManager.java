@@ -8,11 +8,15 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class LangManager extends AppCompatActivity  {
     private static final String SELECTED_LANGUAGE = "Locale.Helper.Selected.Language";
+
 
     public static Context setLocale(Context context, String language) {
         persist(context, language);

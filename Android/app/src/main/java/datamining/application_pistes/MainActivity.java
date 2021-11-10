@@ -5,42 +5,58 @@ import android.graphics.Color;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
-
-import android.support.v7.app.ActionBar;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private Thread thread;
 
+    ArrayList<String> arrayList = new ArrayList<>();
+    ArrayAdapter<String> adapter;
+    ListView list;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //setSupportActionBar(toolbar);
-
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
+
+        list = findViewById(R.id.BagsList);
+        adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, arrayList);
+        list.setAdapter(adapter);
+
+        this.list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                System.out.println("CLICK");
+                CheckedTextView v = (CheckedTextView) view;
+                list.setItemChecked(position, true);
+                //(list.getItemAtPosition(position)) = !v.isChecked();
+            }
+        });
 
         ConnectButton(null);
     }
-/*
-    @Override
+
+
+
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.game_menu, menu);
         return true;
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_settings)
-            return true;
-        return super.onOptionsItemSelected(item);
-    }
-*/
 
     public void ConnectButton(View v) {
         thread = new Connection();
@@ -67,28 +83,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void SearchClick(View v) {
-        UpdateText("fr");
-
         if(((Connection)thread).getSocket() != null) {
-            ((Connection)thread).SendMsg("//-"+ RequeteSUM.CONNEXION_ANDROID +"#-"+ ((EditText)findViewById(R.id.IdFlight)).getText() +"$");
+            ((Connection)thread).SendMsg("//"+ RequeteSUM.CONNEXION_ANDROID +"#"+ ((EditText)findViewById(R.id.IdFlight)).getText() +"$");
 
             String[] msg = ((Connection)thread).GetMsg();
             if(Integer.parseInt(msg[0]) == ReponseSUM.CONNECTION_OK) {
-                // Display list
+                ArrayList<Integer> bags = new ArrayList<>();
+                for(int i = 0, j = 0; i != -1; j = i+1) {
+                    i = msg[1].indexOf("%", j);
+                    if(i != -1)
+                        bags.add(Integer.parseInt(msg[1].substring(j, i)));
+                    else
+                        bags.add(Integer.parseInt(msg[1].substring(j)));
+                }
+
+                adapter.clear();
+                for(int i = 0; i < bags.size(); i++)
+                    adapter.add(bags.get(i).toString());
             }
         }
     }
-    
+
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.en :
+                UpdateText("en");
+                break;
+            case R.id.fr :
+                UpdateText("fr");
+                break;
+            case R.id.es :
+                UpdateText("es");
+                break;
+        }
+        return true;
+    }
     public void UpdateText(String lang) {
-        Resources res = (LangManager.setLocale(MainActivity.this,lang)).getResources();
+        Resources res = (LangManager.setLocale(this, lang)).getResources();
 
         ArrayList<TextView> text = new ArrayList<>();
         int[] id = {R.id.ConnectButton, R.id.IdFlight, R.id.SearchButton};
 
         //TextView tmp = ((TextView)findViewById(id[0]));
 
-        for(int i = 0; i < id.length; i++) {
-            text.add(((TextView)findViewById(id[i])));
+        for (int i = 0; i < id.length; i++) {
+            text.add(((TextView) findViewById(id[i])));
 
             //TextView tmp = ((TextView)findViewById(id[i]));
             //tmp.setText(res.getString(getResources().getIdentifier(tmp.getText().toString(), "string", getPackageName())));

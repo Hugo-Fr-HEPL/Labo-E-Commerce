@@ -5,4 +5,5 @@
     <string name="connected">Connected</string>
     <string name="id_flight">Id Flight</string>
     <string name="search">Search</string>
+    <string name="bags_list">Bags List</string>
 </resources>

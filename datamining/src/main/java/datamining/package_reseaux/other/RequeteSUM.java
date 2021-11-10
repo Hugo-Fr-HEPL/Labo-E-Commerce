@@ -37,7 +37,7 @@ public class RequeteSUM implements Requete, Serializable {
 
 
     public Runnable createRunnable (final Socket s, final ConsoleServeur cs) {
-        if (type <= CONNEXION_RSERVE)
+        if (type == CONNEXION_RSERVE)
             return new Runnable() {
                 public void run() {
                     traiteConnexionRServe(s, cs);
@@ -139,11 +139,12 @@ public class RequeteSUM implements Requete, Serializable {
         " FROM bagages ba"+
         " INNER JOIN billets bi USING(idBillet)"+
         " INNER JOIN vols v USING(numVol)"+
-        " WHERE v.numVol = "+ type * -1;
+        " WHERE v.numVol = "+ vol;
         
         try {
             ResultSet resultat = instruc.executeQuery(req);
-            String msg = "";
+            resultat.next();
+            String msg = resultat.getString(1);
 
             while(resultat.next()) {
                 msg += "%";
@@ -151,7 +152,7 @@ public class RequeteSUM implements Requete, Serializable {
             }
             
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
-            dos.writeUTF(ReponseSUM.CONNECTION_OK + "#" + msg +"$");
+            dos.writeUTF("//"+ ReponseSUM.CONNECTION_OK + "#" + msg +"$");
             dos.flush(); dos.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -618,6 +619,7 @@ public class RequeteSUM implements Requete, Serializable {
     }
 
     private int type;
+    private int vol;
     private int mois;
     private String comp;
     private boolean age;
@@ -626,6 +628,10 @@ public class RequeteSUM implements Requete, Serializable {
 
     public RequeteSUM(int t) {
         type = t;
+    }
+
+    public RequeteSUM(int t, int v) {
+        type = t; vol = v;
     }
 
     public RequeteSUM(int t, int m, String c) {

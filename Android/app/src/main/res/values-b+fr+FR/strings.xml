@@ -5,4 +5,5 @@
     <string name="connected">Connecté</string>
     <string name="id_flight">Id du vol</string>
     <string name="search">Chercher</string>
+    <string name="bags_list">Liste des Bagages</string>
 </resources>

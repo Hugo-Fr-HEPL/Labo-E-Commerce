@@ -54,9 +54,8 @@ public class ThreadServeur extends Thread {
             }
             catch (IOException | ClassNotFoundException e) {
                 String[] msg = GetMsg();
-                if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_RSERVE * -1) {
-                    new RequeteSUM(Integer.parseInt(msg[1]));
-                    req = new RequeteSUM(Integer.parseInt(msg[0]));
+                if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_ANDROID) {
+                    req = new RequeteSUM(Integer.parseInt(msg[0]), Integer.parseInt(msg[1]));
                 }
             }
 
@@ -86,7 +85,7 @@ public class ThreadServeur extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Recu " + msg[0] + " - " + msg[1]);
+        //System.out.println("Recu " + msg[0] + " - " + msg[1]);
         return msg;
     }
 }
