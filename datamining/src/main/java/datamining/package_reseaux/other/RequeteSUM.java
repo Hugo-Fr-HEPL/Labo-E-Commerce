@@ -11,9 +11,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.print.attribute.standard.Destination;
 
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
@@ -28,7 +31,9 @@ public class RequeteSUM implements Requete, Serializable {
     public static int REG_CORR_LUG_PLUS = 3;
     public static int ANOVA_1_LUG = 4;
     public static int ANOVA_2_LUG_HF = 5;
+
     public static int CONNEXION_ANDROID = 6;
+    public static int ANDROID_DONE = 7;
 
     public static Connection con = null;
     public static Statement instruc = null;
@@ -74,7 +79,14 @@ public class RequeteSUM implements Requete, Serializable {
         else if (type == CONNEXION_ANDROID) {
             return new Runnable() {
                 public void run() {
-                    traiteAndroid(s, cs);
+                    traiteConnexionAndroid(s, cs);
+                }
+            };
+        }
+        else if (type == ANDROID_DONE) {
+            return new Runnable() {
+                public void run() {
+                    traiteAndroidDone(s, cs);
                 }
             };
         }
@@ -110,6 +122,18 @@ public class RequeteSUM implements Requete, Serializable {
         }
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
+/*
+            ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION_NOK);
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(rep); oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
+*/
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -119,7 +143,7 @@ public class RequeteSUM implements Requete, Serializable {
 /*
     Requete Android
 */
-    private void traiteAndroid(Socket sock, ConsoleServeur cs) {
+    private void traiteConnexionAndroid(Socket sock, ConsoleServeur cs) {
         try {
             prop = Client.Proper();
 
@@ -133,13 +157,11 @@ public class RequeteSUM implements Requete, Serializable {
         }
     }
 
-
     private void SendMsgAndroid(Socket sock) {
         String req  = "SELECT ba.idBagage"+
         " FROM bagages ba"+
         " INNER JOIN billets bi USING(idBillet)"+
-        " INNER JOIN vols v USING(numVol)"+
-        " WHERE v.numVol = "+ vol;
+        " WHERE bi.numVol = "+ vol;
         
         try {
             ResultSet resultat = instruc.executeQuery(req);
@@ -160,7 +182,30 @@ public class RequeteSUM implements Requete, Serializable {
             e.printStackTrace();
         }
     }
+    
+    private void traiteAndroidDone(Socket sock, ConsoleServeur cs) {
+        String req  = "UPDATE bagages SET soute = 1"+
+        " WHERE idBillet = idBillet"+
+        " FROM billets"+
+        " WHERE numVol = "+ vol;
+        
+        try {
+            System.out.println("OIO");
+            ResultSet resultat = instruc.executeQuery(req);
+            System.out.println("OIO 22");
 
+            if(resultat != null) {
+                System.out.println("FIN");
+                DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+                dos.writeUTF("//"+ ReponseSUM.ANDROID_OK + "$");
+                dos.flush(); dos.close();
+            }
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 /*
     Regression Correlation 1
@@ -169,18 +214,33 @@ public class RequeteSUM implements Requete, Serializable {
         System.out.println("reg corr 1");
         boolean ok = false;
         double pval = 0, Rsq = 0;
+
+        /*
+        Double[] poids = null;
+        Double[] distance = null;
+        Double[] histDou1 = null;
+        Double[] histDou2 = null;
+        String[] histStr = null;
+        */
+
+        List<Double> lpoids = new ArrayList<Double>();
+        List<Double> ldist = new ArrayList<Double>();
+        List<Double> histDouble1 = new ArrayList<Double>();
+        List<Double> histDouble2 = new ArrayList<Double>();
+        List<String> histString = new ArrayList<String>();
+        int numgraph=0;
         
         try {
+            String[] res = ResultCat(Request(1), 2, 0);
+            
             ResultSet resultat = instruc.executeQuery(Request(1));
 
             resultat.next();
             String poids = resultat.getString(1);
             String distance = resultat.getString(2);
 
-            ArrayList<Double> liste1 = new ArrayList<Double>();
-            ArrayList<Double> liste2 = new ArrayList<Double>();
-            liste1.add(resultat.getDouble(1));
-            liste2.add(resultat.getDouble(2));
+            lpoids.add(resultat.getDouble(1));
+            ldist.add(resultat.getDouble(2));
             int cpt = 1;
 
             while(resultat.next()) {
@@ -194,46 +254,113 @@ public class RequeteSUM implements Requete, Serializable {
                     distance += resultat.getString(2);
                 }
 
-                liste1.add(resultat.getDouble(1));
-                liste2.add(resultat.getDouble(2));
+                lpoids.add(resultat.getDouble(1));
+                ldist.add(resultat.getDouble(2));
                 cpt++;
             }
-            double[][] histo = new double[cpt - 1][2];
-            for(int i = 0; i < cpt - 1; i++) {
-                histo[i][0] = liste1.get(i);
-                histo[i][1] = liste2.get(i);
-            }
-            jFreeChart.ShowScatterPoint("Reg - Scatter Points", "y", "x", histo);
+            
+            //poids = ArrayResDouble(res[0]);
+            //distance = ArrayResDouble(res[1]);
+            
+            if(mois == 0) {
+                numgraph=1;
+                //String req = "SELECT EXTRACT(YEAR FROM dateVol), distance FROM vols";
+                //String[] res2 = ResultCat(req, 1, 0);
 
-
-            resultat = instruc.executeQuery("SELECT DISTINCT EXTRACT(YEAR FROM dateVol), distance FROM vols");
-            resultat.next();
-            liste2 = new ArrayList<Double>();
-            ArrayList<String> liste3 = new ArrayList<String>();
-            liste2.add(resultat.getDouble(2));
-            liste3.add(resultat.getString(1));
-            cpt = 0;
-
-            while(resultat.next()) {
-                liste2.add(resultat.getDouble(2));
-                liste3.add(resultat.getString(1));
-                cpt++;
-            }
-            double[] scatterDouble = new double[cpt - 1];
-            String[] scatterString = new String[cpt - 1];
-            for(int i = 0, j, k = 0; i < cpt - 1; i++) {
-                for(j = 0; j < cpt - 1; j++) {
-                    if(liste3.get(i).equals(scatterString[j]))
-                        scatterDouble[j] += liste2.get(i);
+                //hist = ArrayResDouble(res2[0]);
+                
+                resultat = instruc.executeQuery("SELECT EXTRACT(YEAR FROM dateVol), distance FROM vols");
+                ldist = new ArrayList<Double>();
+                List<String> lyear = new ArrayList<String>();
+                cpt = 0;
+                while(resultat.next()) {
+                    lyear.add(resultat.getString(1));
+                    ldist.add(resultat.getDouble(2));
+                    cpt++;
                 }
-                if(j == cpt) {
-                    scatterDouble[k] = liste2.get(i);
-                    scatterString[k] = liste3.get(i);
-                    k++;
+
+                //tri par année
+                Double tmp;
+                List<Double> histdist = new ArrayList<Double>();
+                List<String> histyear = new ArrayList<String>();
+                for(int i = 0, j; i < cpt - 1; i++) {
+                    for(j = 0; j < histyear.size(); j++) {
+                        if(lyear.get(i).equals(histyear.get(j)))
+                        {
+                            tmp=histdist.get(j);
+                            tmp+=ldist.get(i);
+                            histdist.set(j,tmp);
+                            break;
+                        }     
+                    }
+                    if(j == histyear.size()) {
+                        histdist.add(ldist.get(i));
+                        histString.add(lyear.get(i));
+                    }
                 }
             }
-            jFreeChart.ShowHistogram("Reg - Histogram", "Distance", "Années", scatterDouble, scatterString);
+            else
+            {   
+                numgraph=2;
 
+                int moisSuivant;
+                if(mois!=12)
+                    moisSuivant=mois+1;
+                else
+                    moisSuivant=1;
+
+                resultat = instruc.executeQuery("SELECT EXTRACT(YEAR FROM dateVol), EXTRACT(MONTH FROM dateVol), distance FROM vols WHERE EXTRACT(MONTH FROM dateVol) = " + mois + " OR EXTRACT(MONTH FROM dateVol) = " + moisSuivant);
+                
+                ldist = new ArrayList<Double>();
+                ArrayList<String> lmois = new ArrayList<String>();
+                ArrayList<String> histyear = new ArrayList<String>();
+                cpt = 0;
+
+                while(resultat.next()) {
+                    ldist.add(resultat.getDouble(3));
+                    lmois.add(resultat.getString(2));
+                    histyear.add(resultat.getString(1));
+                    cpt++;
+                }
+
+                //tri par année
+                Double tmp;
+                
+                for(int i = 0, j; i < cpt - 1; i++) {
+                    for(j = 0; j < histString.size(); j++) {
+                        if(histyear.get(i).equals(histString.get(j)))
+                        {
+                            if(lmois.get(i).equals(String.valueOf(mois)))
+                            {
+                                tmp=histDouble1.get(j);
+                                tmp+=ldist.get(i);
+                                histDouble1.set(j,tmp);
+                                break;
+                            }
+                            else
+                            {
+                                tmp=histDouble2.get(j);
+                                tmp+=ldist.get(i);
+                                histDouble2.set(j,tmp);
+                                break;
+                            }
+                        }     
+                    }
+                    if(j == histString.size()) {
+                        if(lmois.get(i).equals(String.valueOf(mois)))
+                        {
+                            histDouble1.add(ldist.get(i));
+                            histDouble2.add(0.0);
+                        }
+                        else
+                        {
+                            histDouble2.add(ldist.get(i));
+                            histDouble1.add(0.0);
+                        }
+                        histString.add(histyear.get(i));
+                    }
+                }
+            }
 
             rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
             System.out.println("data reg corr créée");
@@ -274,57 +401,32 @@ public class RequeteSUM implements Requete, Serializable {
                 conclusion = pval <= 0.20 ? "Corrélation entre le poids et la distance" : "Pas de corrélation entre le poids et la distance";
             else
                 conclusion = "Pas confiance aux régresseurs";
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion));
+            
+            if(numgraph==1)
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAM, lpoids, ldist, histDouble1, histDouble2, histString));
+            else
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAMCOM, lpoids, ldist, histDouble1, histDouble2, histString));
         } else
             SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
     }
 
-
-/*
+    /*
     Regression Correlation 2
-*/
+    */
     private void traiteRegCorrPlus(Socket sock, ConsoleServeur cs) {
         System.out.println("reg corr 2");
         boolean ok = false;
         double pval = 0, Rsq = 0;
         
         try {
-            ResultSet resultat = instruc.executeQuery(Request(2));
+            String[] res = ResultCat(Request(2), 4, 0);
 
-            resultat.next();
-            String poids = resultat.getString(1);
-            String distance = resultat.getString(2);
-            String nbAccompReq = resultat.getString(3);
-            String ageReq = resultat.getString(4);
-
-            while(resultat.next()) {
-                if(resultat.getString(1) != null) {
-                    poids += ",";
-                    poids += resultat.getString(1);
-                }
-
-                if(resultat.getString(2) != null) {
-                    distance += ',';
-                    distance += resultat.getString(2);
-                }
-
-                if(resultat.getString(3) != null) {
-                    nbAccompReq += ',';
-                    nbAccompReq += resultat.getString(3);
-                }
-
-                if(resultat.getString(4) != null) {
-                    ageReq += ',';
-                    ageReq += resultat.getString(4);
-                }
-            }
-
-            String req = "reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +")";
+            String req = "reg <- data.frame(poids = c("+ res[0] +"), distance = c("+ res[1] +")";
             
             if(nbAccomp)
-                req += ", nbAccomp = c("+ nbAccompReq +")";
+                req += ", nbAccomp = c("+ res[2] +")";
             if(age)
-                req += ", age = c("+ ageReq +")";
+                req += ", age = c("+ res[3] +")";
             req += ")";
             rConn.voidEval(req);
             System.out.println("data reg corr plus créée");
@@ -394,50 +496,50 @@ public class RequeteSUM implements Requete, Serializable {
     }
 
 
-/*
+    /*
     Anova 1
-*/
+    */
     private void traiteAnova(Socket sock, ConsoleServeur cs) {
         System.out.println("anova 1");
         boolean ok = false;
         double pval = 0;
         
+        
+        Double[] poids = null;
+        String[] destination = null;
+        /*
+        List<List> poidsFin = new ArrayList<List>();
+        String[] destFin = null;
+        */
+        
+        List<List> lpoidsfin = new ArrayList<List>();
+        List<String> ldestfin = new ArrayList<String>();
+        
         try {
-            ResultSet resultat = instruc.executeQuery(Request(3));
-            
-            resultat.next();
-            String poids = resultat.getString(1);
-            String destination = ("\"" + resultat.getString(2) + "\"");
+            String[] res = ResultCat(Request(3), 1, 1);
 
-            ArrayList<Double> liste1 = new ArrayList<Double>();
-            ArrayList<String> liste2 = new ArrayList<String>();
-            liste1.add(resultat.getDouble(1));
-            liste2.add(resultat.getString(2));
-            int cpt = 1;
+            poids = ArrayResDouble(res[0]);
+            destination = ArrayResString(res[1]);
 
-            while(resultat.next()) {
-                if(resultat.getString(1) != null) {
-                    poids += ",";
-                    poids += resultat.getString(1);
+            for(int i = 0, j; i < poids.length; i++) {
+                for(j = 0; j < ldestfin.size(); j++) {
+                    if(destination[i].equals(ldestfin.get(j)))
+                    {
+                        lpoidsfin.get(j).add(poids[i]);
+                        break;
+                    }
                 }
-
-                if(resultat.getString(2) != null) {
-                    destination += ",";
-                    destination += ("\"" + resultat.getString(2) + "\"");
+                if(j == ldestfin.size()) {
+                    List tmp2 = new ArrayList<Double>();
+                    tmp2.add(poids[i]);
+                    lpoidsfin.add(tmp2);
+                    
+                    ldestfin.add(destination[i]);
                 }
+            }
 
-                liste1.add(resultat.getDouble(1));
-                liste2.add(resultat.getString(2));
-                cpt++;
-            }
-            double[][] dataset = new double[cpt - 1][2];
-            for(int i = 0; i < cpt - 1; i++) {
-                dataset[i][0] = liste1.get(i);
-                //dataset[i][1] = liste2.get(i);
-            }
-            jFreeChart.ShowScatterPoint("Anova 1", "y", "x", dataset);
-            
-            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"))");
+
+            rConn.voidEval("anova <- data.frame(poids = c("+ res[0] +"), destination = c("+ res[1] +"))");
             System.out.println("data anova1 créée");
             
             REXP rExp = rConn.eval("summ <- summary(anova)");
@@ -465,47 +567,24 @@ public class RequeteSUM implements Requete, Serializable {
         String conclusion = "";
         if(ok == true) {
             conclusion = pval <= 0.20 ? "Lien entre le poids et la destination" : "Pas de lien entre le poids et la destination";
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.BOXPLOT_SECTORIEL, ldestfin, lpoidsfin));
         } else
             SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
     }
 
 
-/*
+    /*
     Anova 2
-*/
+    */
     private void traiteAnovaHf(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 2");
         boolean ok = false;
         double pval = 0;
         
         try {
-            ResultSet resultat = instruc.executeQuery(Request(4));
+            String[] res = ResultCat(Request(4), 1, 2);
             
-            resultat.next();
-            String poids = resultat.getString(1);
-            String destination = ("\"" + resultat.getString(2) + "\"");
-            String sexe = ("\"" + resultat.getString(3) + "\"");
-
-            while(resultat.next()) {
-                if(resultat.getString(1) != null) {
-                    poids += ",";
-                    poids += resultat.getString(1);
-                }
-
-                if(resultat.getString(2) != null) {
-                    destination += ",";
-                    destination += ("\"" + resultat.getString(2) + "\"");
-                }
-
-                if(resultat.getString(3) != null) {
-                    sexe += ",";
-                    sexe += ("\"" + resultat.getString(3) + "\"");
-                }
-            }
-            System.out.println("SEXE " + sexe);
-            
-            rConn.voidEval("anova <- data.frame(poids = c("+ poids +"), destination = c("+ destination +"), sexe = c("+ sexe +"))");
+            rConn.voidEval("anova <- data.frame(poids = c("+ res[0] +"), destination = c("+ res[1] +"), sexe = c("+ res[2] +"))");
             System.out.println("data anova2 créée");
             
             REXP rExp = rConn.eval("summ <- summary(anova)");
@@ -588,9 +667,66 @@ public class RequeteSUM implements Requete, Serializable {
             req += ", v.destination";
             if(i == 4) req += ", cl.sexe";
         }
-
         return req;
     }
+
+
+    public String[] ResultCat(String req, int nbDouble, int nbString) throws SQLException {
+        ResultSet resultat = instruc.executeQuery(req);
+        
+        String[] res = new String[nbDouble + nbString];
+
+        resultat.next();
+        for(int i = 0; i < nbDouble; i++)
+            res[i] = resultat.getString(i+1);
+        for(int i = nbDouble; i < nbString + nbDouble; i++)
+            res[i] = "\"" + resultat.getString(i+1) + "\"";
+
+        while(resultat.next()) {
+            for(int i = 0; i < nbDouble; i++) {
+                res[i] += "," + resultat.getString(i+1);
+            }
+            for(int i = nbDouble; i < nbString + nbDouble; i++) {
+                res[i] += ",\"" + resultat.getString(i+1) + "\"";
+            }
+        }
+        return res;
+    }
+
+
+    public Double[] ArrayResDouble(String res) {
+        ArrayList<Double> arrayTmp = new ArrayList<>();
+        for(int i = 0, j = 0; i != -1; j = i+1) {
+            i = res.indexOf(",", j);
+            if(i != -1)
+                arrayTmp.add(Double.parseDouble(res.substring(j, i)));
+            else
+                arrayTmp.add(Double.parseDouble(res.substring(j)));
+        }
+
+        Double[] tmp = new Double[arrayTmp.size()];
+        for(int i = 0; i < arrayTmp.size(); i++)
+            tmp[i] = arrayTmp.get(i);
+
+        return tmp;
+    }
+    public String[] ArrayResString(String res) {
+        ArrayList<String> arrayTmp = new ArrayList<>();
+        for(int i = 0, j = 0; i != -1; j = i+1) {
+            i = res.indexOf(",", j);
+            if(i != -1)
+                arrayTmp.add(res.substring(j, i));
+            else
+                arrayTmp.add(res.substring(j));
+        }
+
+        String[] tmp = new String[arrayTmp.size()];
+        for(int i = 0; i < arrayTmp.size(); i++)
+            tmp[i] = arrayTmp.get(i);
+
+        return tmp;
+    }
+
 
     private void SendAnswer(Socket sock, ReponseSUM rep) {
         try {
@@ -602,6 +738,7 @@ public class RequeteSUM implements Requete, Serializable {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
     }
+
 
     private void RExpPrintSummary(REXP r, int row) {
         try {

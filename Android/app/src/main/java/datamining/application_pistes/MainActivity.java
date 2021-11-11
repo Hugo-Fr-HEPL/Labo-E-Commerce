@@ -25,6 +25,9 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter<String> adapter;
     ListView list;
 
+    String vol = null;
+    int nbBags = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +47,20 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 CheckedTextView v = (CheckedTextView) view;
                 v.setChecked(!v.isChecked());
+                if(v.isChecked())
+                    nbBags--;
+                else
+                    nbBags++;
 
-                // Check if every box are checked -> Return back (where ?)
-                //if(list.isItemChecked(position)) System.out.println("OUI");
+                if(nbBags == 0) {
+                    ((Connection)thread).SendMsg("//"+ RequeteSUM.ANDROID_DONE +"#"+ vol +"$");
+
+                    /*
+                    if(Integer.parseInt(((Connection)thread).GetMsg()[0]) == ReponseSUM.ANDROID_OK) {
+                        vol = null; adapter.clear();
+                    }
+                    */
+                }
             }
         });
     }
@@ -87,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         if(((Connection)thread).getSocket() != null) {
             ((Connection)thread).SendMsg("//"+ RequeteSUM.CONNEXION_ANDROID +"#"+ ((EditText)findViewById(R.id.IdFlight)).getText() +"$");
 
+            vol = ((EditText)findViewById(R.id.IdFlight)).getText().toString();
+
             String[] msg = ((Connection)thread).GetMsg();
             if(Integer.parseInt(msg[0]) == ReponseSUM.CONNECTION_OK) {
                 ArrayList<Integer> bags = new ArrayList<>();
@@ -98,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                         bags.add(Integer.parseInt(msg[1].substring(j)));
                 }
 
+                nbBags = bags.size();
                 adapter.clear();
                 for(int i = 0; i < bags.size(); i++)
                     adapter.add(bags.get(i).toString());

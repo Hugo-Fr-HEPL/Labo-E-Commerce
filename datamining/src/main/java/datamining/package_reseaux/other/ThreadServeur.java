@@ -54,9 +54,9 @@ public class ThreadServeur extends Thread {
             }
             catch (IOException | ClassNotFoundException e) {
                 String[] msg = GetMsg();
-                if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_ANDROID) {
+                System.out.println("OUIUOU");
+                if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_ANDROID || Integer.parseInt(msg[0]) == RequeteSUM.ANDROID_DONE)
                     req = new RequeteSUM(Integer.parseInt(msg[0]), Integer.parseInt(msg[1]));
-                }
             }
 
             Runnable travail = req.createRunnable(CSocket, guiApplication);

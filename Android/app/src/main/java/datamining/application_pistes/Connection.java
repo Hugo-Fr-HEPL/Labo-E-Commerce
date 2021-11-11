@@ -36,7 +36,7 @@ public class Connection extends Thread {
         }
 */
         try {
-            sock = new Socket("192.168.1.98", 50000);
+            sock = new Socket("192.168.0.58", 50000);
             //dos = new ObjectOutputStream(sock.getOutputStream());
             dis = new ObjectInputStream(sock.getInputStream());
         } catch (UnknownHostException e) {
