@@ -18,7 +18,6 @@ public class RequeteSUM implements Serializable {
 
     public static int CONNEXION_ANDROID = 6;
     public static int ANDROID_DONE = 7;
-    public static int CONNEXION_RSERVE_AND = 8;
     public static int REG_CORR_LUG_AND = 9;
     public static int ANOVA_1_LUG_AND = 10;
 

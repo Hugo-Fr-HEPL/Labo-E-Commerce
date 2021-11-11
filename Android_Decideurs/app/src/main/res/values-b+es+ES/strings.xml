@@ -4,4 +4,7 @@
     <string name="reg">Regressors</string>
     <string name="anova">Anova</string>
     <string name="main_text">Resultados</string>
+
+    <string name="reg_text">Peso por Distancia</string>
+    <string name="anova_text">Peso por Destino</string>
 </resources>

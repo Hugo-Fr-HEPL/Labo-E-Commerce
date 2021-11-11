@@ -47,8 +47,6 @@ public class Connection extends Thread {
     }
 
     public Socket getSocket() { return sock; }
-    //public ObjectOutputStream getDos() { return dos; }
-    //public ObjectInputStream getDis() { return dis; }
 
     public void SendMsg(String msg) {
         try {

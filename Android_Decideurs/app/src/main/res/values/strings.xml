@@ -7,6 +7,6 @@
     <string name="anova">Anova</string>
     <string name="main_text">Results</string>
 
-    <string name="anova_text">TEST</string>
-    <string name="reg_text">TEST</string>
+    <string name="reg_text">Weight by Distance</string>
+    <string name="anova_text">Weight by Destination</string>
 </resources>

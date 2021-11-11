@@ -4,4 +4,7 @@
     <string name="reg">Régresseurs</string>
     <string name="anova">Anova</string>
     <string name="main_text">Résultats</string>
+
+    <string name="reg_text">Poids par Distance</string>
+    <string name="anova_text">Poids par Destination</string>
 </resources>

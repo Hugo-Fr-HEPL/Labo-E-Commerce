@@ -224,9 +224,10 @@ public class RequeteSUM implements Requete, Serializable {
         boolean ok = false;
         double pval = 0, Rsq = 0;
 
-        /*
+        String[] res = null;
         Double[] poids = null;
         Double[] distance = null;
+        /*
         Double[] histDou1 = null;
         Double[] histDou2 = null;
         String[] histStr = null;
@@ -238,39 +239,23 @@ public class RequeteSUM implements Requete, Serializable {
         List<Double> histDouble2 = new ArrayList<Double>();
         List<String> histString = new ArrayList<String>();
         int numgraph=0;
-        
+
         try {
-            String[] res = ResultCat(Request(1), 2, 0);
-            
+            res = ResultCat(Request(1), 2, 0);
+
+            poids = ArrayResDouble(res[0]);
+            distance = ArrayResDouble(res[1]);
+
+
             ResultSet resultat = instruc.executeQuery(Request(1));
 
-            resultat.next();
-            String poids = resultat.getString(1);
-            String distance = resultat.getString(2);
-
-            lpoids.add(resultat.getDouble(1));
-            ldist.add(resultat.getDouble(2));
             int cpt = 1;
-
             while(resultat.next()) {
-                if(resultat.getString(1) != null) {
-                    poids += ",";
-                    poids += resultat.getString(1);
-                }
-
-                if(resultat.getString(2) != null) {
-                    distance += ',';
-                    distance += resultat.getString(2);
-                }
-
                 lpoids.add(resultat.getDouble(1));
                 ldist.add(resultat.getDouble(2));
                 cpt++;
             }
-            
-            //poids = ArrayResDouble(res[0]);
-            //distance = ArrayResDouble(res[1]);
-            
+
             if(mois == 0) {
                 numgraph=1;
                 //String req = "SELECT EXTRACT(YEAR FROM dateVol), distance FROM vols";
@@ -371,7 +356,7 @@ public class RequeteSUM implements Requete, Serializable {
                 }
             }
 
-            rConn.voidEval("reg <- data.frame(poids = c("+ poids +"), distance = c("+ distance +"))");
+            rConn.voidEval("reg <- data.frame(poids = c("+ res[0] +"), distance = c("+ res[1] +"))");
             System.out.println("data reg corr créée");
 
             REXP rExp = rConn.eval("summ <- summary(reg)");
@@ -411,10 +396,10 @@ public class RequeteSUM implements Requete, Serializable {
             else
                 conclusion = "Pas confiance aux régresseurs";
             
-            if(numgraph==1)
-                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAM, lpoids, ldist, histDouble1, histDouble2, histString), null);
+            if(numgraph == 1)
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAM, lpoids, ldist, histDouble1, histDouble2, histString), res);
             else
-                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAMCOM, lpoids, ldist, histDouble1, histDouble2, histString), null);
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAMCOM, lpoids, ldist, histDouble1, histDouble2, histString), res);
         } else
             SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion), null);
     }
