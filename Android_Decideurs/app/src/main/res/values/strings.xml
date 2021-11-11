@@ -1,9 +1,12 @@
 <resources>
-    <string name="app_name">Application_Pistes</string>
+    <string name="app_name">Application_DataMiningMob</string>
 
     <string name="not_connected">Not Connected</string>
     <string name="connected">Connected</string>
     <string name="reg">Regressors</string>
     <string name="anova">Anova</string>
     <string name="main_text">Results</string>
+
+    <string name="anova_text">TEST</string>
+    <string name="reg_text">TEST</string>
 </resources>

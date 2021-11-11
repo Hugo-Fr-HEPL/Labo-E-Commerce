@@ -36,7 +36,7 @@ public class Connection extends Thread {
         }
 */
         try {
-            sock = new Socket("192.168.0.58", 50000);
+            sock = new Socket("192.168.1.98", 50000);
             //dos = new ObjectOutputStream(sock.getOutputStream());
             dis = new ObjectInputStream(sock.getInputStream());
         } catch (UnknownHostException e) {
@@ -78,7 +78,7 @@ public class Connection extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Recu " + msg[0] + " - "+ msg[1]);
+        System.out.println("Recu " + msg[0]);
         return msg;
     }
 }

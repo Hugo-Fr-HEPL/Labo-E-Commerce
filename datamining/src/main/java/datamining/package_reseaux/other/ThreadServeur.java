@@ -54,9 +54,12 @@ public class ThreadServeur extends Thread {
             }
             catch (IOException | ClassNotFoundException e) {
                 String[] msg = GetMsg();
-                System.out.println("OUIUOU");
                 if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_ANDROID || Integer.parseInt(msg[0]) == RequeteSUM.ANDROID_DONE)
                     req = new RequeteSUM(Integer.parseInt(msg[0]), Integer.parseInt(msg[1]));
+                else if(Integer.parseInt(msg[0]) == RequeteSUM.CONNEXION_RSERVE)
+                    req = new RequeteSUM(Integer.parseInt(msg[0]));
+                else
+                    req = new RequeteSUM(Integer.parseInt(msg[0]));
             }
 
             Runnable travail = req.createRunnable(CSocket, guiApplication);
@@ -85,7 +88,7 @@ public class ThreadServeur extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //System.out.println("Recu " + msg[0] + " - " + msg[1]);
+        System.out.println("Recu " + msg[0]);
         return msg;
     }
 }

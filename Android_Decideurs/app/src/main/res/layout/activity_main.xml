@@ -15,6 +15,7 @@
         android:layout_marginTop="150dp"
         android:layout_marginEnd="60dp"
         android:clickable="false"
+        android:onClick="AnovaButton"
         android:text="@string/anova"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/RegButton"
@@ -28,6 +29,7 @@
         android:layout_marginTop="150dp"
         android:layout_marginEnd="20dp"
         android:clickable="false"
+        android:onClick="RegButton"
         android:text="@string/reg"
         app:layout_constraintEnd_toStartOf="@+id/AnovaButton"
         app:layout_constraintStart_toStartOf="parent"
@@ -49,11 +51,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ListView
-        android:id="@+id/BagsList"
+    <LinearLayout
+        android:id="@+id/chart"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

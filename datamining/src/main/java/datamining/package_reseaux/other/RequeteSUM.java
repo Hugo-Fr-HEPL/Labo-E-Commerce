@@ -34,6 +34,9 @@ public class RequeteSUM implements Requete, Serializable {
 
     public static int CONNEXION_ANDROID = 6;
     public static int ANDROID_DONE = 7;
+    public static int CONNEXION_RSERVE_AND = 8;
+    public static int REG_CORR_LUG_AND = 9;
+    public static int ANOVA_1_LUG_AND = 10;
 
     public static Connection con = null;
     public static Statement instruc = null;
@@ -42,7 +45,7 @@ public class RequeteSUM implements Requete, Serializable {
 
 
     public Runnable createRunnable (final Socket s, final ConsoleServeur cs) {
-        if (type == CONNEXION_RSERVE)
+        if (type == CONNEXION_RSERVE || type == REG_CORR_LUG_AND || type == ANOVA_1_LUG_AND)
             return new Runnable() {
                 public void run() {
                     traiteConnexionRServe(s, cs);
@@ -104,21 +107,27 @@ public class RequeteSUM implements Requete, Serializable {
                 rConn = new RConnection("localhost");
                 System.out.println("connexion réussie");
             }
-            
-            try {
-                ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
-                oos.writeObject(new ReponseSUM(ReponseSUM.CONNECTION_OK));
-                oos.flush(); oos.close();
-            }
-            catch (IOException e) {
-                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-            }
 
             prop = Client.Proper();
 
             con = MySQL.MySQL_Connexion("bd_airport", (String)prop.get("DB_port"), "localhost", (String)prop.get("DB"), (String)prop.get("DB_pwd"));
             instruc = con.createStatement();
             System.out.println("-- DB Connected --");
+            
+            try {
+                if(type == CONNEXION_RSERVE) {
+                    ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                    oos.writeObject(new ReponseSUM(ReponseSUM.CONNECTION_OK));
+                    oos.flush(); oos.close();
+                } else if(type == REG_CORR_LUG_AND) {
+                    traiteRegCorr(sock, cs);
+                } else if(type == ANOVA_1_LUG_AND) {
+                    traiteAnova(sock, cs);
+                }
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
         }
         catch (RserveException ex) {
             Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
@@ -403,16 +412,16 @@ public class RequeteSUM implements Requete, Serializable {
                 conclusion = "Pas confiance aux régresseurs";
             
             if(numgraph==1)
-                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAM, lpoids, ldist, histDouble1, histDouble2, histString));
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAM, lpoids, ldist, histDouble1, histDouble2, histString), null);
             else
-                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAMCOM, lpoids, ldist, histDouble1, histDouble2, histString));
+                SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.HISTOGRAMCOM, lpoids, ldist, histDouble1, histDouble2, histString), null);
         } else
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion), null);
     }
 
-    /*
+/*
     Regression Correlation 2
-    */
+*/
     private void traiteRegCorrPlus(Socket sock, ConsoleServeur cs) {
         System.out.println("reg corr 2");
         boolean ok = false;
@@ -490,21 +499,22 @@ public class RequeteSUM implements Requete, Serializable {
                 conclusion = pval <= 0.20 ? "Corrélation entre le poids et la distance" : "Pas de corrélation entre le poids et la distance";
             else
                 conclusion = "Pas confiance aux régresseurs";
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion), null);
         } else
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion), null);
     }
 
 
-    /*
+/*
     Anova 1
-    */
+*/
     private void traiteAnova(Socket sock, ConsoleServeur cs) {
         System.out.println("anova 1");
         boolean ok = false;
         double pval = 0;
         
-        
+        String[] res = null;
+        String[] resAnd = new String[2];
         Double[] poids = null;
         String[] destination = null;
         /*
@@ -516,10 +526,45 @@ public class RequeteSUM implements Requete, Serializable {
         List<String> ldestfin = new ArrayList<String>();
         
         try {
-            String[] res = ResultCat(Request(3), 1, 1);
+            res = ResultCat(Request(3), 1, 1);
 
             poids = ArrayResDouble(res[0]);
             destination = ArrayResString(res[1]);
+
+            List<String> dest = new ArrayList<String>();
+            for(int i = 0, j; i < destination.length; i++) {
+                for(j = 0; j < dest.size(); j++)
+                    if(destination[i].equals(dest.get(j)))
+                        break;
+
+                if(j == dest.size())
+                    dest.add(destination[i]);
+            }
+
+            Double[] poidsTrie = new Double[dest.size()];
+            for(int i = 0; i < poids.length; i++) {
+                for(int j = 0; j < dest.size(); j++) {
+                    if(destination[i].equals(dest.get(j))) {
+                        if(poidsTrie[j] == null)
+                            poidsTrie[j] = poids[i];
+                        else
+                            poidsTrie[j] += poids[i];
+                        break;
+                    }
+                }
+            }
+
+            String[] destinationTrie = new String[dest.size()];
+            for(int i = 0; i < dest.size(); i++)
+            destinationTrie[i] = dest.get(i);
+
+            resAnd[0] = poidsTrie[0].toString();
+            resAnd[1] = "\""+ destinationTrie[0] +"\"";
+            for(int i = 1; i < poidsTrie.length; i++) {
+                resAnd[0] += ","+ poidsTrie[i];
+                resAnd[1] += ",\""+ destinationTrie[i] +"\"";
+            }
+
 
             for(int i = 0, j; i < poids.length; i++) {
                 for(j = 0; j < ldestfin.size(); j++) {
@@ -567,15 +612,15 @@ public class RequeteSUM implements Requete, Serializable {
         String conclusion = "";
         if(ok == true) {
             conclusion = pval <= 0.20 ? "Lien entre le poids et la destination" : "Pas de lien entre le poids et la destination";
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.BOXPLOT_SECTORIEL, ldestfin, lpoidsfin));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion, ReponseSUM.BOXPLOT_SECTORIEL, ldestfin, lpoidsfin), resAnd);
         } else
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion), null);
     }
 
 
-    /*
+/*
     Anova 2
-    */
+*/
     private void traiteAnovaHf(Socket sock, ConsoleServeur cs) {
         System.out.println("reg anova 2");
         boolean ok = false;
@@ -622,9 +667,9 @@ public class RequeteSUM implements Requete, Serializable {
         String conclusion = "";
         if(ok == true) {
             conclusion = pval <= 0.20 ? "Lien entre le poids et la destination" : "Pas de lien entre le poids et la destination";
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_OK, conclusion), null);
         } else
-            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion));
+            SendAnswer(sock, new ReponseSUM(ReponseSUM.STATISTIC_NOK, conclusion), null);
     }
 
     private String Request(int i) {
@@ -647,14 +692,16 @@ public class RequeteSUM implements Requete, Serializable {
         if(i == 2 || i == 4)
             req += " INNER JOIN clients cl USING(idclient)";
 
-        if(mois != 0 && comp.equals("Toutes les compagnies") == false) {
-            req += " WHERE nomCompagnie = '"+ comp +"'"+
-                    " AND EXTRACT(MONTH FROM dateVol) = "+ mois;
-        } else {
-            if(comp.equals("Toutes les compagnies") == false)
-                req += " WHERE nomCompagnie = '"+ comp +"'";
-            if(mois != 0)
-                req += " WHERE EXTRACT(MONTH FROM dateVol) = "+ mois;
+        if(type < 5) {
+            if(mois != 0 && comp.equals("Toutes les compagnies") == false) {
+                req += " WHERE nomCompagnie = '"+ comp +"'"+
+                        " AND EXTRACT(MONTH FROM dateVol) = "+ mois;
+            } else {
+                if(comp.equals("Toutes les compagnies") == false)
+                    req += " WHERE nomCompagnie = '"+ comp +"'";
+                if(mois != 0)
+                    req += " WHERE EXTRACT(MONTH FROM dateVol) = "+ mois;
+            }
         }
         req += " GROUP BY bi.idClient";
         if(i <= 2) {
@@ -712,12 +759,12 @@ public class RequeteSUM implements Requete, Serializable {
     }
     public String[] ArrayResString(String res) {
         ArrayList<String> arrayTmp = new ArrayList<>();
-        for(int i = 0, j = 0; i != -1; j = i+1) {
-            i = res.indexOf(",", j);
+        for(int i = 0, j = 2; i != -1; j = i+3) {
+            i = res.indexOf("\",\"", j);
             if(i != -1)
                 arrayTmp.add(res.substring(j, i));
             else
-                arrayTmp.add(res.substring(j));
+                arrayTmp.add(res.substring(j, res.length()-1));
         }
 
         String[] tmp = new String[arrayTmp.size()];
@@ -728,11 +775,17 @@ public class RequeteSUM implements Requete, Serializable {
     }
 
 
-    private void SendAnswer(Socket sock, ReponseSUM rep) {
+    private void SendAnswer(Socket sock, ReponseSUM rep, String[] msg) {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
-            oos.close();
+            if(type < 5) {
+                ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(rep); oos.flush();
+                oos.close();
+            } else {
+                DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+                dos.writeUTF("//"+ ReponseSUM.STATISTIC_OK +"#"+ msg[0] +"#"+ msg[1] + "$");
+                dos.flush(); dos.close();
+            }
         }
         catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
