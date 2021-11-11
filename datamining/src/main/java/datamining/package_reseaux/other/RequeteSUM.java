@@ -16,8 +16,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.print.attribute.standard.Destination;
-
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
@@ -34,7 +32,6 @@ public class RequeteSUM implements Requete, Serializable {
 
     public static int CONNEXION_ANDROID = 6;
     public static int ANDROID_DONE = 7;
-    public static int CONNEXION_RSERVE_AND = 8;
     public static int REG_CORR_LUG_AND = 9;
     public static int ANOVA_1_LUG_AND = 10;
 
@@ -550,7 +547,7 @@ public class RequeteSUM implements Requete, Serializable {
                 resAnd[1] += ",\""+ destinationTrie[i] +"\"";
             }
 
-
+//
             for(int i = 0, j; i < poids.length; i++) {
                 for(j = 0; j < ldestfin.size(); j++) {
                     if(destination[i].equals(ldestfin.get(j)))
@@ -567,7 +564,7 @@ public class RequeteSUM implements Requete, Serializable {
                     ldestfin.add(destination[i]);
                 }
             }
-
+//
 
             rConn.voidEval("anova <- data.frame(poids = c("+ res[0] +"), destination = c("+ res[1] +"))");
             System.out.println("data anova1 créée");
