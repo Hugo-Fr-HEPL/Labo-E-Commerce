@@ -1,0 +1,7 @@
+<resources>
+    <string name="not_connected">No Conectado</string>
+    <string name="connected">Conectado</string>
+    <string name="reg">Regressors</string>
+    <string name="anova">Anova</string>
+    <string name="main_text">Resultados</string>
+</resources>

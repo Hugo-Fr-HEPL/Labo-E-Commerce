@@ -3,7 +3,7 @@
 
     <string name="not_connected">Not Connected</string>
     <string name="connected">Connected</string>
-    <string name="id_flight">Id Flight</string>
-    <string name="search">Search</string>
-    <string name="bags_list">Bags List</string>
+    <string name="reg">Regressors</string>
+    <string name="anova">Anova</string>
+    <string name="main_text">Results</string>
 </resources>
